@@ -27,12 +27,16 @@ export default function USMap({ visitedStates = [] }) {
 
   // Define fill color expression for Mapbox
   const fillColor = [
-    "match",
-    ["get", "NAME"],
-    "__none__",
-    "#E0E0E0",
-    "#E0E0E0",
-  ];
+  "match",
+  ["get", "NAME"],
+  ...(
+    visitedStateNames.length > 0
+      ? visitedStateNames.flatMap((name) => [name, "#3CB043"])
+      : ["__none__", "#E0E0E0"]  // dummy pair so expression is never invalid
+  ),
+  "#E0E0E0", // default color
+];
+
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
