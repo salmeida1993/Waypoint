@@ -1,14 +1,13 @@
-<<<<<<< HEAD
 # 🌎 Travel Tracker for the United States
 
 ### Authors - Stewart Almeida, Theresa Coleman
 
 
-[Course: CS5610 Web Development](https://johnguerra.co/classes/webDevelopment_online_fall_2025/)
+[Course: CS5610 Web Development](https://johnguerra.co/classes/webDevelopment_online_fall_2025/), Project 4
 
 Instructor: John Alexis Guerra Gomez
 
-[Public Deployment](https://cs5610-project-3-site.onrender.com/)
+[Public Deployment](https://project3test-pfgs.onrender.com)
 
 ## 🎞️ Short Video Presentations
 
@@ -123,45 +122,33 @@ Create database called `tripTracker`
 - Create two collections: `users` and `trips`
 ### Scripts
 
-Open 3 terminal windows and run the following commands in their respective window:
-1. Window 1: Authentication (PORT 4000)
+Open 2 terminal windows from the root of the project repo and run the following commands in their respective window:
+1. Window 1: Backend
    ```
-   npm run dev:auth
+   npm start
    ```
-2. Window 2: Backend (PORT 3000)
+2. Window 2: React Frontend (Vite):
    ```
-   npm run dev:backend
+   npm run dev
    ```
-3. Window 3: Frontend (Vite, PORT 5174)
+   or optionally the following commands in order:
    ```
-   npm run dev:frontend
+   cd client
+   npm run dev
    ```
-
-
-Defaults runs on: http://127.0.0.1:PORT 
-
-
-Make sure both the frontend and auth-server are running simultaneously.
+Make sure both the backend and frontend are running simultaneously.
 
 ## 🔐 Environment Variables
 
-Create a .env file inside auth-server with:
-```
-AUTH_PORT=4000
-MONGO_URI=mongodb://127.0.0.1:27017
-MONGO_DB=tripTracker
-AUTH_SECRET=change-me-to-a-long-random-string
-NODE_ENV=development
-```
 Create a .env file at the project root with:
 ```
-MONGODB_URI=mongodb://127.0.0.1:27017/tripTracker
+MONGO_URI=mongodb://127.0.0.1:27017/tripTracker
 PORT=3000
-MAPBOX_TOKEN=pk.eyJ1Ijoic2FsbWVpZGExOTkzIiwiYSI6ImNtaGxmcDc1bTAwNnAycHE0MHBzMjQyeW4ifQ.CyQk_2C7_6cSQjidPsgjEA
+MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 Create a .env file inside client with:
 ```
-VITE_MAPBOX_TOKEN=pk.eyJ1Ijoic2FsbWVpZGExOTkzIiwiYSI6ImNtaGxmcDc1bTAwNnAycHE0MHBzMjQyeW4ifQ.CyQk_2C7_6cSQjidPsgjEA
+VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
 ## 🧭 Usage Instructions
 
@@ -221,7 +208,3 @@ Log in, edit name/email, confirm changes.
 Add at least one trip → confirm map highlights visited states.
 
 Refresh page — data should persist.
-=======
-# project3test
-testing project 3/4 useability
->>>>>>> ddc4751d71db634a8039bdf2cf8f274bc6338a04
