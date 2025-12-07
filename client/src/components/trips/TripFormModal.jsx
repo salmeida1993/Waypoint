@@ -91,6 +91,9 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.legs.length === 0) {
+      return alert("Please add at least one leg to the trip.");
+    }
     if (formData._id) {
       onSave(formData, true); // Pass true to indicate edit
     } else {
@@ -247,7 +250,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                   name={key}
                   value={formData.expenses[key]}
                   onChange={handleExpenseChange}
-                  placeholder="0"
+                  placeholder="$0.00"
                 />
               </Col>
             ))}

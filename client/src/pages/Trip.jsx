@@ -9,7 +9,7 @@ import TripFilters from "../components/trips/TripFilters.jsx";
 function getVisitedStates(trips) {
   const states = new Set();
   trips.forEach((trip) => {
-    trip.legs.forEach((leg) => {
+    (trip.legs ?? []).forEach((leg) => {
       if (leg.state) states.add(leg.state);
     });
   });
