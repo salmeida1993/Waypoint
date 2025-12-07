@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import states from "../../data/states.json";
 
 export default function TripFormModal({ show, onHide, onSave, initialData }) {
   const blankForm = {
@@ -116,7 +117,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3 trip-modal">
             <Form.Label>Title</Form.Label>
             <Form.Control
               name="title"
@@ -126,7 +127,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3 trip-modal">
             <Form.Label>Description</Form.Label>
             <Form.Control
               as="textarea"
@@ -142,6 +143,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
               <Form.Group className="mb-3">
                 <Form.Label>Start Date</Form.Label>
                 <Form.Control
+                  className="trip-modal"
                   type="date"
                   name="startDate"
                   value={formData.startDate}
@@ -150,7 +152,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
               </Form.Group>
             </Col>
             <Col>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-3 trip-modal">
                 <Form.Label>End Date</Form.Label>
                 <Form.Control
                   type="date"
@@ -188,10 +190,21 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                     <Form.Control
                       placeholder="State (e.g., TX)"
                       value={leg.state}
-                      onChange={(e) =>
-                        handleLegChange(index, "state", e.target.value)
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        if (/^[A-Z]{0,2}$/.test(val)) {
+                          handleLegChange(index, "state", val);
                       }
+                      }}
+                      list={`state-options-${index}`}
                     />
+                    <datalist id={`state-options-${index}`}>
+                      {states.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.name} ({s.code})
+                        </option>
+                      ))}
+                    </datalist>
                   </Col>
                   <Col md={2}>
                     <Form.Control
@@ -211,7 +224,8 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                   <Col md={2}>
                     <Button
                       size="sm"
-                      variant="outline-danger"
+                      variant="secondary"
+                      className="btn-delete"
                       onClick={() => removeLeg(index)}
                     >
                       Remove
