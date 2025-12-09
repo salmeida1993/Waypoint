@@ -1,24 +1,24 @@
-const API_BASE = import.meta.env.VITE_API_BASE || ""; // empty in dev to use proxy
-
-export async function api(path, { method = "GET", data } = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: { "Content-Type": "application/json" },
+export const api = async (url, options = {}) => {
+  const res = await fetch("/api" + url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
     credentials: "include",
-    body: data ? JSON.stringify(data) : undefined,
+    body: options.data ? JSON.stringify(options.data) : undefined,
   });
 
-  if (!res.ok) {
-    const err = new Error(`HTTP ${res.status}`);
-    err.status = res.status;
-    try {
-      const msg = await res.json();
-      err.message = msg.message || err.message;
-    } catch {
-      // ignore
-    }
-    throw err;
+  const text = await res.text();
+  console.log("API Response:", text);
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error("Invalid JSON response from server: " + text);
   }
-
-  return res.json();
-}
+  if (!res.ok) {
+    throw new Error(data.message || "API request failed");
+  }
+  return data;
+};

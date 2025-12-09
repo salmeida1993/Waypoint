@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 function NavigationBar({ user, logout }) {
   return (
-    <Navbar expand="lg" className="navbar-theme">
+    <Navbar expand="md" className="navbar-theme">
       <Container>
         <Navbar.Brand as={Link} to="/" className="navbar-brand">
           Travel Tracker

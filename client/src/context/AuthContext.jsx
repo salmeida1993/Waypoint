@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     let cancel = false;
     (async () => {
       try {
-        const me = await api("/users/me");
+        const me = await api("/auth/me");
         if (!cancel) setUser(me.user || null);
       } catch {
         if (!cancel) setUser(null);
@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
 
   const updateMe = async (patch) => {
     try {
-      const r = await api("/users/me", { method: "PATCH", data: patch });
+      const r = await api("/auth/me", { method: "PATCH", data: patch });
       setUser(r.user);
       return r.user;
     } catch (e) {
@@ -61,18 +61,18 @@ export function AuthProvider({ children }) {
   };
 
   const deleteMe = async () => {
-    await api("/users/me", { method: "DELETE" });
+    await api("/auth/me", { method: "DELETE" });
     setUser(null);
   };
 
   // Visited states helpers (safe if not used)
   const loadVisited = async () => {
-    const r = await api("/users/me/visited");
+    const r = await api("/auth/me/visited");
     return r.visitedStates || [];
   };
 
   const saveVisited = async (visitedStates) => {
-    const r = await api("/users/me/visited", {
+    const r = await api("/auth/me/visited", {
       method: "PUT",
       data: { visitedStates },
     });

@@ -1,119 +1,126 @@
 // routes/auth.js
 import express from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
-import { getDb } from "../db/mongo.js";
-import { ObjectId } from "mongodb";
+import passport from "passport";
+
+import { isAuthenticated } from "../middleware/auth.js";
+import {
+  findUserByEmail,
+  createUser,
+  findUserById,
+  emailExists,
+  updateUser,
+} from "../models/users.js";
 
 const router = express.Router();
 
-const { AUTH_SECRET = "change-me", NODE_ENV = "development" } = process.env;
-
-const cookieOpts = {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: NODE_ENV === "production",
-  path: "/",
-  maxAge: 1000 * 60 * 60 * 24 * 7,
-};
-
 // Middleware
 router.use(express.json());
-router.use(cookieParser());
 
-// Auth helper
-function authRequired(req, res, next) {
-  const token = req.cookies?.token;
-  if (!token) return res.status(401).json({ message: "Not authenticated" });
 
-  try {
-    req.auth = jwt.verify(token, AUTH_SECRET);
-    next();
-  } catch {
-    res.clearCookie("token", { ...cookieOpts, maxAge: 0 });
-    res.status(401).json({ message: "Session expired" });
-  }
-}
-
-function sign(payload) {
-  return jwt.sign(payload, AUTH_SECRET, { expiresIn: "7d" });
-}
-
-// =====================
-// ROUTES
-// =====================
+// Registration endpoint
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body || {};
+  try {
+    const { name, email, password } = req.body || {};
+    if (!name || !email || !password || password.length < 6) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
+    if (await emailExists(email)) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (!name || !email || !password || password.length < 6)
-    return res.status(400).json({ message: "Invalid input" });
-  const db = await getDb();
-  const users = db.collection("users");
+    const user = await createUser({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      passwordHash: hashedPassword,
+      visitedStates: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  const emailNorm = email.trim().toLowerCase();
-  const exists = await users.findOne({ email: emailNorm });
+    delete user.passwordHash; // Remove password from user object
 
-  if (exists)
-    return res.status(409).json({ message: "Email already registered" });
-
-  const pass = await bcrypt.hash(password, 10);
-
-  const doc = {
-    name: name.trim(),
-    email: emailNorm,
-    pass,
-    visitedStates: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const r = await users.insertOne(doc);
-
-  const user = { _id: r.insertedId, name: doc.name, email: doc.email };
-  const token = sign({ uid: String(user._id), email: user.email });
-
-  res.cookie("token", token, cookieOpts);
-  res.status(201).json({ user });
-});
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body || {};
-
-  if (!email || !password)
-    return res.status(400).json({ message: "Invalid input" });
-  const db = await getDb();
-  const users = db.collection("users");
-
-  const u = await users.findOne({ email: email.toLowerCase() });
-  if (!u || !(await bcrypt.compare(password, u.pass)))
-    return res.status(401).json({ message: "Invalid email or password" });
-
-  const token = sign({ uid: String(u._id), email: u.email });
-
-  res.cookie("token", token, cookieOpts);
-  res.json({ user: { _id: u._id, name: u.name, email: u.email } });
-});
-
-router.post("/logout", (req, res) => {
-  res.clearCookie("token", { ...cookieOpts, maxAge: 0 });
-  res.json({ ok: true });
-});
-
-router.get("/me", authRequired, async (req, res) => {
-  const db = await getDb();
-  const users = db.collection("users");
-
-  const u = await users.findOne(
-    { _id: new ObjectId(req.auth.uid) },
-    { projection: { pass: 0 } }
-  );
-
-  if (!u) {
-    res.clearCookie("token", { ...cookieOpts, maxAge: 0 });
-    return res.status(401).json({ message: "Session expired" });
+    res.status(201).json({
+      message: "User registered successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error registering user" });
   }
-  res.json({ user: u });
+});
+
+// Login endpoint
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+
+    if (!user) {
+      return res.status(401).json({
+        message: info?.message || "Invalid credentials"
+      });
+    }
+
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      const safeUser = { ...user };
+      delete safeUser.passwordHash;
+
+      return res.json({ user: safeUser });
+    });
+  })(req, res, next);
+});
+
+
+// Edit a user
+router.patch("/me", isAuthenticated, async (req, res) => {
+  try {
+    const { name, email } = req.body || {};
+    const updateData = {};
+
+    if (!name) {
+      return res.status(400).json({ message: "Invalid name" });
+    }
+    updateData.name = name.trim();
+
+    if (email) {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (
+        (await emailExists(normalizedEmail)) &&
+        normalizedEmail !== req.user.email
+      ) {
+        return res
+          .status(409)
+          .json({ message: "Email has already been registered" });
+      }
+      updateData.email = normalizedEmail;
+    }
+
+    await updateUser(req.user._id, updateData);
+    const updatedUser = await findUserById(req.user._id);
+    delete updatedUser.passwordHash;
+    res.status(200).json({ message: "User updated", user: updatedUser });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating user" });
+  }
+});
+
+// Get current user
+router.get("/me", isAuthenticated, async (req, res) => {
+  delete req.user.passwordHash;
+  res.json({ user: req.user });
+});
+
+// Logout endpoint
+router.post("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Error logging out" });
+    }
+    res.json({ message: "Logout successful" });
+  });
 });
 
 export default router;
