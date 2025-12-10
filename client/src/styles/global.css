@@ -149,6 +149,17 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+.icon-button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 input {
   width: 100%;
   padding: 10px;

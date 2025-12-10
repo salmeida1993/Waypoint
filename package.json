@@ -4,13 +4,14 @@
   "description": "Travel tracker for the United States.",
   "main": "backend.js",
   "type": "module",
-  "scripts": {
-    "start": "node ./node_modules/nodemon/bin/nodemon.js backend.js",
-    "dev": "cd client && npm run dev",
-    "build": "cd client && npm run build && cp -r dist ../dist",
-    "format": "prettier --write .",
-    "lint": "eslint ."
-  },
+"scripts": {
+  "start": "node backend.js",
+  "dev": "cd client && npm run dev",
+  "build": "cd client && npm run build && cp -r dist ../dist",
+  "format": "prettier --write .",
+  "lint": "eslint .",
+  "seed": "node db/scripts/seed.js"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/salmeida1993/CS5610-Project-3.git"

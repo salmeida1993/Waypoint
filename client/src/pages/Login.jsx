@@ -50,19 +50,16 @@ export default function Login() {
               required
               style={{ paddingRight: "2rem" }}
             />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: "0.5rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                cursor: "pointer",
-              }}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+            
+            <button
+            type="button"
+            className="icon-button"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
+              </button>
+
           </div>
         </label>
         <div className="mt-3">
