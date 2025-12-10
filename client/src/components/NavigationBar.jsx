@@ -8,7 +8,7 @@ function NavigationBar({ user, logout }) {
     <Navbar expand="md" className="navbar-theme">
       <Container>
         <Navbar.Brand as={Link} to="/" className="navbar-brand">
-          Travel Tracker
+          Waypoint
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="main-navbar-nav" />
         <Navbar.Collapse id="main-navbar-nav">

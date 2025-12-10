@@ -12,10 +12,9 @@ router.post("/trips/userId/:userId", async (req, res) => {
     const userId = req.params.userId;
     const {
       title,
-      description = "",
       startDate = null,
       endDate = null,
-      legs = [],
+      destinations = [],
       expenses: {
         transportation = 0,
         food = 0,
@@ -32,12 +31,12 @@ router.post("/trips/userId/:userId", async (req, res) => {
       extra: extra,
     };
 
-    const processedLegs = [];
-    for (const leg of legs) {
-      const { city, state, days = 0 } = leg;
+    const processedDestinations = [];
+    for (const destination of destinations) {
+      const { city, state, days = 0 } = destination;
       const geo = await geoLookup(`${city}, ${state}`);
 
-      processedLegs.push({
+      processedDestinations.push({
         _id: new ObjectId(),
         city,
         state,
@@ -54,10 +53,9 @@ router.post("/trips/userId/:userId", async (req, res) => {
     const trip = await tripsDB.createTrip({
       userId,
       title,
-      description,
       startDate,
       endDate,
-      legs: processedLegs,
+      destinations: processedDestinations,
       expenses,
       notes,
     });
@@ -152,48 +150,48 @@ router.delete("/trips/:tripId", async (req, res) => {
   }
 });
 
-// Legs
-// Update a specific leg of a trip
-router.patch("/trips/:tripId/legs/:legId", async (req, res) => {
+// Destinations
+// Update a specific destination of a trip
+router.patch("/trips/:tripId/destinations/:destinationId", async (req, res) => {
   try {
-    const { tripId, legId } = req.params;
+    const { tripId, destinationId } = req.params;
     const updates = req.body;
-    const updatedLeg = await tripsDB.updateLeg(tripId, legId, updates);
-    if (!updatedLeg) {
-      return res.status(404).json({ error: "Leg not found" });
+    const updatedDestination = await tripsDB.updateDestination(tripId, destinationId, updates);
+    if (!updatedDestination) {
+      return res.status(404).json({ error: "Destination not found" });
     }
-    res.status(200).json(updatedLeg);
+    res.status(200).json(updatedDestination);
   } catch (error) {
-    console.error("Error updating leg:", error);
-    res.status(500).json({ error: "Failed to update leg" });
+    console.error("Error updating destination:", error);
+    res.status(500).json({ error: "Failed to update destination" });
   }
 });
 
-// Delete a specific leg of a trip
-router.delete("/trips/:tripId/legs/:legId", async (req, res) => {
+// Delete a specific destination of a trip
+router.delete("/trips/:tripId/destinations/:destinationId", async (req, res) => {
   try {
-    const { tripId, legId } = req.params;
+    const { tripId, destinationId } = req.params;
     let objectTripId;
-    let objectLegId;
+    let objectDestinationId;
     try {
       objectTripId = new ObjectId(tripId);
-      objectLegId = new ObjectId(legId);
+      objectDestinationId = new ObjectId(destinationId);
     } catch {
       return res.status(400).json({ error: "Invalid trip ID format" });
     }
-    const deletedLeg = await tripsDB.deleteLeg(objectTripId, objectLegId);
-    if (!deletedLeg) {
-      return res.status(404).json({ error: "Leg not found" });
+    const deletedDestination = await tripsDB.deleteDestination(objectTripId, objectDestinationId);
+    if (!deletedDestination) {
+      return res.status(404).json({ error: "Destination not found" });
     }
-    res.status(200).json(deletedLeg);
+    res.status(200).json(deletedDestination);
   } catch (error) {
-    console.error("Error deleting leg:", error);
-    res.status(500).json({ error: "Failed to delete leg" });
+    console.error("Error deleting destination:", error);
+    res.status(500).json({ error: "Failed to delete destination" });
   }
 });
 
-// Add a new leg to a trip
-router.post("/trips/:tripId/legs", async (req, res) => {
+// Add a new destination to a trip
+router.post("/trips/:tripId/destinations", async (req, res) => {
   try {
     const { tripId } = req.params;
     let objectTripId;
@@ -205,7 +203,7 @@ router.post("/trips/:tripId/legs", async (req, res) => {
     const { city, state, days = 0 } = req.body;
     const geo = await geoLookup(`${city}, ${state}`);
 
-    const leg = {
+    const destination = {
       _id: new ObjectId(),
       city,
       state,
@@ -216,14 +214,14 @@ router.post("/trips/:tripId/legs", async (req, res) => {
       updatedAt: new Date(),
     };
 
-    const updatedTrip = await tripsDB.addLegToTrip(objectTripId, leg);
+    const updatedTrip = await tripsDB.addDestinationToTrip(objectTripId, destination);
     if (!updatedTrip) {
       return res.status(404).json({ error: "Trip not found" });
     }
     res.status(201).json(updatedTrip);
   } catch (error) {
-    console.error("Error adding leg to trip:", error);
-    res.status(500).json({ error: "Failed to add leg to trip" });
+    console.error("Error adding destination to trip:", error);
+    res.status(500).json({ error: "Failed to add destination to trip" });
   }
 });
 

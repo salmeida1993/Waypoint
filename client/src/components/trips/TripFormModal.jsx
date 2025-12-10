@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import { Modal, Button, Form, Row, Col, FloatingLabel } from "react-bootstrap";
 import states from "../../data/states.json";
 
 export default function TripFormModal({ show, onHide, onSave, initialData }) {
   const blankForm = {
     title: "",
-    description: "",
     startDate: "",
     endDate: "",
-    legs: [],
+    destinations: [],
     expenses: {
       transportation: "",
       food: "",
@@ -18,10 +17,10 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
     notes: "",
   };
 
-  const blankLeg = { city: "", state: "", days: "" };
+  const blankDestination = { city: "", state: "", days: "" };
 
   const [formData, setFormData] = useState(blankForm);
-  const [newLeg, setNewLeg] = useState(blankLeg);
+  const [newDestination, setNewDestination] = useState(blankDestination);
 
   useEffect(() => {
     if (!show) return;
@@ -30,10 +29,9 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
       setFormData({
         _id: initialData._id,
         title: initialData.title ?? "",
-        description: initialData.description ?? "",
         startDate: initialData.startDate ?? "",
         endDate: initialData.endDate ?? "",
-        legs: initialData.legs ?? [],
+        destinations: initialData.destinations ?? [],
         expenses: {
           transportation: initialData.expenses.transportation ?? 0,
           food: initialData.expenses.food ?? 0,
@@ -49,7 +47,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
 
   useEffect(() => {
     if (!show) {
-      setNewLeg(blankLeg);
+      setNewDestination(blankDestination);
     }
   }, [show]);
 
@@ -66,33 +64,33 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
     }));
   };
 
-  const handleAddLeg = () => {
-    //if (!newLeg.city || !newLeg.state) return alert("Please fill in both city and state for the new leg.");
+  const handleAddDestination = () => {
+    //if (!newDestination.city || !newDestination.state) return alert("Please fill in both city and state for the new destination.");
     setFormData((prev) => ({
       ...prev,
-      legs: [...prev.legs, { ...newLeg, days: parseInt(newLeg.days) || 0 }],
+      destinations: [...prev.destinations, { ...newDestination, days: parseInt(newDestination.days) || 0 }],
     }));
-    setNewLeg(blankLeg);
+    setNewDestination(blankDestination);
   };
 
-  const handleLegChange = (index, field, value) => {
-    const updatedLegs = [...formData.legs];
-    updatedLegs[index][field] = value;
-    setFormData((prev) => ({ ...prev, legs: updatedLegs }));
+  const handleDestinationChange = (index, field, value) => {
+    const updatedDestinations = [...formData.destinations];
+    updatedDestinations[index][field] = value;
+    setFormData((prev) => ({ ...prev, destinations: updatedDestinations }));
   };
 
-  const removeLeg = (index) => {
-    if (!window.confirm("Remove this leg?")) return;
+  const removeDestination = (index) => {
+    if (!window.confirm("Remove this destination?")) return;
     setFormData((prev) => ({
       ...prev,
-      legs: prev.legs.filter((_, i) => i !== index),
+      destinations: prev.destinations.filter((_, i) => i !== index),
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.legs.length === 0) {
-      return alert("Please add at least one leg to the trip.");
+    if (formData.destinations.length === 0) {
+      return alert("Please add at least one destination to the trip.");
     }
     if (formData._id) {
       onSave(formData, true); // Pass true to indicate edit
@@ -130,17 +128,6 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3 trip-modal">
-            <Form.Label>Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={2}
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-            />
-          </Form.Group>
-
           <Row>
             <Col>
               <Form.Group className="mb-3">
@@ -168,39 +155,43 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
             </Col>
           </Row>
 
-          {/* Legs */}
-          <div className="mb-3">
+          {/* Destinations */}
+          <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <Form.Label>Legs</Form.Label>
-              <Button size="sm" onClick={handleAddLeg} className="btn-add-trip">
-                + Add Leg
+              <Form.Label>Destinations</Form.Label>
+              <Button size="sm" onClick={handleAddDestination} className="btn-add-trip">
+                + Add Destination
               </Button>
             </div>
 
-            {formData.legs.map((leg, index) => (
+            {formData.destinations.map((destination, index) => (
               <div key={index} className="border rounded p-2 mb-2 bg-light">
                 <Row>
                   <Col md={4}>
-                    <Form.Control
-                      placeholder="City"
-                      value={leg.city}
-                      onChange={(e) =>
-                        handleLegChange(index, "city", e.target.value)
-                      }
-                    />
+                    <FloatingLabel label="City" className="mb-1">
+                      <Form.Control
+                        placeholder="Chicago"
+                        value={destination.city}
+                        onChange={(e) =>
+                          handleDestinationChange(index, "city", e.target.value)
+                        }
+                      />
+                    </FloatingLabel>
                   </Col>
-                  <Col md={4}>
-                    <Form.Control
-                      placeholder="State (e.g., TX)"
-                      value={leg.state}
-                      onChange={(e) => {
-                        const val = e.target.value.toUpperCase();
-                        if (/^[A-Z]{0,2}$/.test(val)) {
-                          handleLegChange(index, "state", val);
-                      }
-                      }}
-                      list={`state-options-${index}`}
-                    />
+                  <Col md={3}>
+                    <FloatingLabel label="State" className="mb-1">
+                      <Form.Control
+                        placeholder="IL"
+                        value={destination.state}
+                        onChange={(e) => {
+                          const val = e.target.value.toUpperCase();
+                          if (/^[A-Z]{0,2}$/.test(val)) {
+                            handleDestinationChange(index, "state", val);
+                          }
+                        }}
+                        list={`state-options-${index}`}
+                      />
+                    </FloatingLabel>
                     <datalist id={`state-options-${index}`}>
                       {states.map((s) => (
                         <option key={s.code} value={s.code}>
@@ -209,27 +200,29 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                       ))}
                     </datalist>
                   </Col>
-                  <Col md={2}>
-                    <Form.Control
-                      type="number"
-                      placeholder="Days"
-                      value={leg.days}
-                      min={0}
-                      max={tripDuration ?? undefined}
-                      onChange={(e) => {
-                        const days = e.target.value;
-                        if (tripDuration && days > tripDuration) return;
-                        handleLegChange(index, "days", days);
-                      }}
-                      disabled={!tripDuration} // Disable if tripDuration is not valid
-                    />
+                  <Col md={3}>
+                    <FloatingLabel label="Days" className="mb-1">
+                      <Form.Control
+                        type="number"
+                        placeholder="3"
+                        min={0}
+                        max={tripDuration ?? undefined}
+                        value={destination.days}
+                        onChange={(e) => {
+                          const days = e.target.value;
+                          if (tripDuration && days > tripDuration) return;
+                          handleDestinationChange(index, "days", days);
+                        }}
+                        disabled={!tripDuration} // Disable if tripDuration is not valid
+                      />
+                    </FloatingLabel>
                   </Col>
                   <Col md={2}>
                     <Button
                       size="sm"
                       variant="secondary"
                       className="btn-delete"
-                      onClick={() => removeLeg(index)}
+                      onClick={() => removeDestination(index)}
                     >
                       Remove
                     </Button>
@@ -240,11 +233,10 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
           </div>
 
           {/* Expenses */}
-          <h6 className="mt-4">Expenses</h6>
           <Row>
             {["transportation", "food", "lodging", "extra"].map((key) => (
               <Col md={3} key={key} className="mb-2">
-                <Form.Label className="text-capitalize">{key}</Form.Label>
+                <Form.Label className="text-capitalize">{key} Expense</Form.Label>
                 <Form.Control
                   type="number"
                   name={key}
@@ -270,7 +262,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" className="btn-delete" onClick={onHide}>
+          <Button variant="secondary" className="btn-delete m-1" onClick={onHide}>
             Cancel
           </Button>
           <Button type="submit" variant="primary" className="btn-add-trip">

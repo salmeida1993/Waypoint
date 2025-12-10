@@ -6,14 +6,11 @@
   --pad: 16px;
   --radius: 12px;
 
-  /* --bg: #0f172a; */
   --bg: #202A44;
   --card: #111827;
-  /*--text: #e5e7eb;*/
   --text: #DCF2F5;
   --muted: #9ca3af;
   --accent: #D1B46D;
-  /* --accent: #82D6F5; */
   --danger: #ef4444;
   --standout: #28a745;
 }
@@ -31,17 +28,40 @@ html, body, #root {
 
 body {
   margin: 0;
-  font-family:
+    font-family: 
+    'Bellota Text',
+    'Nunito',
+    sans-serif,
     ui-sans-serif,
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Helvetica,
-    Arial;
+    system-ui,;
   background: var(--bg);
   color: var(--text);
   line-height: 1.45;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--text);
+  font-family: 'Bellota Text';
+}
+
+p, li, label, button, input, .btn {
+  font-style: normal;
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  font-weight: 400;
+  margin: 0;
+}
+
+.mytrips {
+  font-weight: 1000;
+}
+
+.modal-title, .form-label {
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* =========================
@@ -268,8 +288,6 @@ ul {
   color: var(--text);
 }
 
-
-
 .accordion-inner-cards {
   background-color: var(--card);
   color: var(--text);
@@ -298,7 +316,7 @@ ul {
    Navbar Customization
 ========================= */
 .navbar-theme {
-  background-color: var(--bg);
+  background-color: var(--card);
   padding: 1rem 2rem;
   margin-bottom: 0.5rem;
 }
@@ -329,4 +347,3 @@ ul {
   background-color: var(--bg);
   color: var(--text);
 }
-

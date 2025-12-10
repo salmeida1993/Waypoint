@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Button, Modal } from "react-bootstrap";
+import { Button, Modal,  } from "react-bootstrap";
 import USMap from "../components/trips/USMap.jsx";
 import TripFormModal from "../components/trips/TripFormModal.jsx";
 import TripAccordion from "../components/trips/TripAccordion.jsx";
@@ -9,8 +9,8 @@ import TripFilters from "../components/trips/TripFilters.jsx";
 function getVisitedStates(trips) {
   const states = new Set();
   trips.forEach((trip) => {
-    (trip.legs ?? []).forEach((leg) => {
-      if (leg.state) states.add(leg.state);
+    (trip.destinations ?? []).forEach((destination) => {
+      if (destination.state) states.add(destination.state);
     });
   });
   return Array.from(states);
@@ -33,8 +33,6 @@ export default function Trip() {
   const [stateFilter, setStateFilter] = useState("");
   const [maxExpense, setMaxExpense] = useState("");
   const [userId, setUserId] = useState(null);
-
-  //const userId = "testUserId"; // Replace with actual user ID from auth context
 
   useEffect(() => {
     // Fetch user ID from auth context or other source
@@ -153,7 +151,9 @@ export default function Trip() {
     }
     if (stateFilter !== "") {
       t = t.filter((trip) =>
-        trip.legs?.some((leg) => leg.state === stateFilter)
+        trip.destinations?.some(
+          (destination) => destination.state === stateFilter
+        )
       );
     }
 
@@ -167,9 +167,19 @@ export default function Trip() {
   };
 
   return (
-    <div className="trip-page container my-4">
-      <h1 className="mb-4 display-1">My Trips</h1>
-
+    <div className="trip-page container">
+      <h1 className="mb-5 display-1 text-center mytrips">My Trips</h1>
+      <div className="row mb-2">
+        <div className="col">
+          <h3 className="text-left mt-3 mb-3">Track where you've been across the U.S.</h3>
+        </div>
+        <div className="col">
+          <h3 className="text-center mt-3 mb-3">View your overall travel stats.</h3>
+        </div>
+        <div className="col">
+          <h3 className="text-end mt-3 mb-3">See what's left to explore</h3>
+        </div>
+      </div>
       {/* SVG Map Component */}
       <div className="mb-4">
         <USMap visitedStates={visitedStates} />

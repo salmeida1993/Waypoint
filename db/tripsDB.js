@@ -74,55 +74,58 @@ export async function deleteTrip(tripId) {
   return result.deletedCount === 1;
 }
 
-//Legs CRUD
+//Destinations CRUD
 
-// Add a leg to a specific trip
-export async function addLegToTrip(tripId, leg) {
+// Add a destination to a specific trip
+export async function addDestinationToTrip(tripId, destination) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
   try {
     const result = await trips.findOneAndUpdate(
       { _id: tripId },
-      { $push: { legs: leg }, $set: { updatedAt: new Date() } },
+      { $push: { destinations: destination }, $set: { updatedAt: new Date() } },
       { returnDocument: "after" }
     );
     return result;
   } catch (error) {
-    console.error("Error adding leg to trip:", error);
+    console.error("Error adding destination to trip:", error);
     throw error;
   }
 }
 
-// Get all legs for a specific trip
-export async function getLegs(tripId) {
+// Get all destinations for a specific trip
+export async function getDestinations(tripId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
   try {
     const trip = await trips.findOne(
       { _id: new ObjectId(tripId) },
-      { projection: { legs: 1 } }
+      { projection: { destinations: 1 } }
     );
-    return trip?.legs || [];
+    return trip?.destinations || [];
   } catch (error) {
-    console.error("Error fetching legs for trip:", error);
+    console.error("Error fetching destinations for trip:", error);
     throw error;
   }
 }
 
-// Update a leg by its ID within a specific trip
-export async function updateLeg(tripId, legId, updates) {
+// Update a destination by its ID within a specific trip
+export async function updateDestination(tripId, destinationId, updates) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
   try {
     const result = await trips.findOneAndUpdate(
-      { _id: new ObjectId(tripId), "legs._id": new ObjectId(legId) },
+      {
+        _id: new ObjectId(tripId),
+        "destinations._id": new ObjectId(destinationId),
+      },
       {
         $set: Object.fromEntries(
           Object.entries(updates).map(([key, value]) => [
-            `legs.$.${key}`,
+            `destinations.$.${key}`,
             value,
           ])
         ),
@@ -131,25 +134,25 @@ export async function updateLeg(tripId, legId, updates) {
     );
     return result.value;
   } catch (error) {
-    console.error("Error updating leg:", error);
+    console.error("Error updating destination:", error);
     throw error;
   }
 }
 
-// Delete a leg by its ID within a specific trip
-export async function deleteLeg(tripId, legId) {
+// Delete a destination by its ID within a specific trip
+export async function deleteDestination(tripId, destinationId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
   try {
     const result = await trips.findOneAndUpdate(
       { _id: tripId },
-      { $pull: { legs: { _id: legId } } },
+      { $pull: { destinations: { _id: destinationId } } },
       { returnDocument: "after" }
     );
     return result;
   } catch (error) {
-    console.error("Error deleting leg:", error);
+    console.error("Error deleting destination:", error);
     throw error;
   }
 }

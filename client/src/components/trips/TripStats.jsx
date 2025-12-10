@@ -42,7 +42,7 @@ export default function TripStats({ trips, visitedStates }) {
             <Col>
                 <Card className="text-center stats-card">
                     <Card.Body>
-                        <Card.Title>Total States</Card.Title>
+                        <Card.Title>Total States Visited</Card.Title>
                         <Card.Text className="stats-card-states">{totalStates} / 51*</Card.Text>
                     </Card.Body>
                 </Card>
@@ -50,7 +50,7 @@ export default function TripStats({ trips, visitedStates }) {
             <Col>
                 <Card className="text-center stats-card">
                     <Card.Body>
-                        <Card.Title>Total Trips</Card.Title>
+                        <Card.Title>Total Trips Taken</Card.Title>
                         <Card.Text>{totalTrips}</Card.Text>
                     </Card.Body>
                 </Card>
@@ -58,7 +58,7 @@ export default function TripStats({ trips, visitedStates }) {
             <Col>
                 <Card className="text-center stats-card">
                     <Card.Body>
-                        <Card.Title>Total Expenses</Card.Title>
+                        <Card.Title>Total Expenses Spent</Card.Title>
                         <Card.Text>${totalExpenses.toFixed(2)}</Card.Text>
                     </Card.Body>
                 </Card>
@@ -66,7 +66,7 @@ export default function TripStats({ trips, visitedStates }) {
             <Col>
                 <Card className="text-center stats-card">
                     <Card.Body>
-                        <Card.Title>Total Days</Card.Title>
+                        <Card.Title>Total Days Traveled</Card.Title>
                         <Card.Text>{totalDays}</Card.Text>
                     </Card.Body>
                 </Card>

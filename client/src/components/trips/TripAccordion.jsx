@@ -21,8 +21,8 @@ function sumExpensesSafe(expenses) {
 export default function TripAccordion({ trips, onEdit, onDelete }) {
   if (!trips || trips.length === 0) {
     return (
-      <p className="text-muted">
-        No trips added yet. Go and add your first trip!
+      <p className="text-center mt-4">
+        No trips added yet. Go and add your first trip to log!
       </p>
     );
   }
@@ -30,8 +30,8 @@ export default function TripAccordion({ trips, onEdit, onDelete }) {
   return (
     <Accordion alwaysOpen>
       {trips.map((trip, index) => {
-        // --- SAFETY: Normalize legs & expenses ---
-        const legsArray = Array.isArray(trip.legs) ? trip.legs : [];
+        // --- SAFETY: Normalize destinations & expenses ---
+        const destinationsArray = Array.isArray(trip.destinations) ? trip.destinations : [];
         const expensesObj =
           trip.expenses && typeof trip.expenses === "object"
             ? trip.expenses
@@ -54,9 +54,9 @@ export default function TripAccordion({ trips, onEdit, onDelete }) {
                 </Col>
 
                 <Col className="text-center">
-                  {legsArray.length > 0
-                    ? `${legsArray.length} Leg${legsArray.length > 1 ? "s" : ""}`
-                    : "No Legs"}
+                  {destinationsArray.length > 0
+                    ? `${destinationsArray.length} Destination${destinationsArray.length > 1 ? "s" : ""}`
+                    : "No Destinations"}
                 </Col>
 
                 <Col className="text-center">${totalExpense.toFixed(2)}</Col>
@@ -64,26 +64,22 @@ export default function TripAccordion({ trips, onEdit, onDelete }) {
             </Accordion.Header>
 
             <Accordion.Body className="accordion-body">
-              {/* Description */}
-              <h5 className="mb-3">Description</h5>
-              <p>{trip.description || "No description provided."}</p>
-
-              {/* Legs */}
-              {legsArray.length > 0 && (
+              {/* Destinations */}
+              {destinationsArray.length > 0 && (
                 <>
-                  <h5 className="mb-3">Legs</h5>
+                  <h5 className="mb-3">Destinations</h5>
                   <Row xs={1} md={4} lg={5} className="g-4">
-                    {legsArray.map((leg, legIndex) => (
-                      <Col key={leg._id || legIndex}>
+                    {destinationsArray.map((destination, destinationIndex) => (
+                      <Col key={destination._id || destinationIndex}>
                         <Card className="accordion-inner-cards">
                           <Card.Body className="text-left">
                             <Card.Title>
                               <strong>
-                                {leg.city || "Unknown City"},{" "}
-                                {leg.state || "??"}
+                                {destination.city || "Unknown City"},{" "}
+                                {destination.state || "??"}
                               </strong>
                             </Card.Title>
-                            <Card.Text>Days: {leg.days ?? 0}</Card.Text>
+                            <Card.Text>Days: {destination.days ?? 0}</Card.Text>
                           </Card.Body>
                         </Card>
                       </Col>
