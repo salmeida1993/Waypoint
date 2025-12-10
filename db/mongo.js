@@ -3,7 +3,7 @@ dotenv.config();
 import { MongoClient, ObjectId } from "mongodb";
 
 const URI = process.env.MONGO_URI;
-const DB_NAME = "tripTracker";
+const DB_NAME = process.env.MONGO_DB || "tripTracker";
 
 if (!URI) {
   throw new Error("MONGO_URI environment variable not set");
@@ -12,22 +12,22 @@ if (!URI) {
 let client;
 let db;
 
-// Singleton connection
 export async function getDb() {
   if (db) return db;
-  client = new MongoClient(URI, { ignoreUndefined: true });
+
+  client = new MongoClient(URI);
   await client.connect();
   db = client.db(DB_NAME);
-
-  // Ensure unique index on users email
-  const users = db.collection("users");
-  await users.createIndex({ email: 1 }, { unique: true });
-
+  console.log(`Connected to MongoDB database: ${DB_NAME}`);
   return db;
 }
 
 export async function closeDb() {
-  if (client) await client.close();
+  if (client) {
+    await client.close();
+    client = null;
+    db = null;
+  }
 }
 
 export function toObjectId(id) {

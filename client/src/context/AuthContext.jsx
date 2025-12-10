@@ -1,101 +1,148 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { api } from "../api/client";
+/* eslint react-refresh/only-export-components: "off" */
 
-const AuthCtx = createContext(null);
-export const useAuth = () => useContext(AuthCtx);
+// client/src/context/AuthContext.jsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+
+const AuthContext = createContext(null);
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
+// Generic API helper using credentials + JSON
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // ignore JSON parse failures
+  }
+
+  if (!res.ok) {
+    const msg = data?.message || `Request failed with status ${res.status}`;
+    const error = new Error(msg);
+    error.status = res.status;
+    throw error;
+  }
+
+  return data || {};
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // Load session on mount
+  // Load current session user on first mount
   useEffect(() => {
     let cancel = false;
     (async () => {
       try {
-        const me = await api("/auth/me");
-        if (!cancel) setUser(me.user || null);
+        const { user: u } = await api("/api/auth/me");
+        if (!cancel) setUser(u || null);
       } catch {
         if (!cancel) setUser(null);
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
+
     return () => {
       cancel = true;
     };
   }, []);
 
-  // Auth actions
-  const login = async (email, password) => {
+  const register = useCallback(async (name, email, password) => {
     setErr("");
-    const r = await api("/auth/login", { method: "POST", data: { email, password } });
-    setUser(r.user);
-    return r.user;
-  };
-
-  const register = async (name, email, password) => {
-    setErr("");
-    const r = await api("/auth/register", { method: "POST", data: { name, email, password } });
-    setUser(r.user);
-    return r.user;
-  };
-
-  const logout = async () => {
-    setErr("");
-    await api("/auth/logout", { method: "POST" });
-    setUser(null);
-  };
-
-  const updateMe = async (patch) => {
-    try {
-      const r = await api("/auth/me", { method: "PATCH", data: patch });
-      setUser(r.user);
-      return r.user;
-    } catch (e) {
-      // If cookie is stale, server returns 401 → clear UI state
-      setUser(null);
-      throw e;
-    }
-  };
-
-  const deleteMe = async () => {
-    await api("/auth/me", { method: "DELETE" });
-    setUser(null);
-  };
-
-  // Visited states helpers (safe if not used)
-  const loadVisited = async () => {
-    const r = await api("/auth/me/visited");
-    return r.visitedStates || [];
-  };
-
-  const saveVisited = async (visitedStates) => {
-    const r = await api("/auth/me/visited", {
-      method: "PUT",
-      data: { visitedStates },
+    const { user: u } = await api("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
     });
-    return r.visitedStates || [];
+    setUser(u || null);
+    return u;
+  }, []);
+
+  const login = useCallback(async (email, password) => {
+    setErr("");
+    const { user: u } = await api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    setUser(u || null);
+    return u;
+  }, []);
+
+  const logout = useCallback(async () => {
+    setErr("");
+    try {
+      await api("/api/auth/logout", { method: "POST" });
+    } finally {
+      setUser(null);
+    }
+  }, []);
+
+  const updateMe = useCallback(async (updates) => {
+    setErr("");
+    const { user: u } = await api("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+    });
+    setUser(u || null);
+    return u;
+  }, []);
+
+  const deleteMe = useCallback(async () => {
+    setErr("");
+    await api("/api/auth/me", { method: "DELETE" });
+    setUser(null);
+  }, []);
+
+  const loadVisited = useCallback(async () => {
+    const { visitedStates = [] } = await api("/api/auth/visited");
+    return visitedStates;
+  }, []);
+
+  const saveVisited = useCallback(async (codes) => {
+    const { visitedStates = [] } = await api("/api/auth/visited", {
+      method: "POST",
+      body: JSON.stringify({ visitedStates: codes }),
+    });
+    return visitedStates;
+  }, []);
+
+  const value = {
+    user,
+    loading,
+    err,
+    setErr,
+    register,
+    login,
+    logout,
+    updateMe,
+    deleteMe,
+    loadVisited,
+    saveVisited,
+    isAuthenticated: !!user,
   };
 
   return (
-    <AuthCtx.Provider
-      value={{
-        user,
-        loading,
-        err,
-        setErr,
-        login,
-        register,
-        logout,
-        updateMe,
-        deleteMe,
-        loadVisited,
-        saveVisited,
-      }}
-    >
-      {children}
-    </AuthCtx.Provider>
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
   );
 }

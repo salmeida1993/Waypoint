@@ -3,156 +3,141 @@ import { ObjectId } from "mongodb";
 
 const COLLECTION = "trips";
 
+function toObjectId(id) {
+  if (id instanceof ObjectId) return id;
+  return new ObjectId(id);
+}
+
 // Create/insert a new trip
 export async function createTrip(doc) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
-  try {
-    doc.createdAt = new Date();
-    doc.updatedAt = new Date();
+  const now = new Date();
+  const insertDoc = {
+    userId: toObjectId(doc.userId),
+    title: doc.title,
+    startDate: doc.startDate ? new Date(doc.startDate) : null,
+    endDate: doc.endDate ? new Date(doc.endDate) : null,
+    destinations: doc.destinations || [],
+    expenses: doc.expenses || {},
+    notes: doc.notes || "",
+    createdAt: now,
+    updatedAt: now,
+  };
 
-    const res = await trips.insertOne(doc);
-    return await trips.findOne({ _id: res.insertedId });
-  } catch (error) {
-    console.error("Error creating trip:", error);
-    throw error;
-  }
+  const res = await trips.insertOne(insertDoc);
+  return trips.findOne({ _id: res.insertedId });
 }
 
-// Get all trips for a specific user
-export async function getTrips({
-  userId,
-  tripId,
-  pageSize = 20,
-  page = 0,
-} = {}) {
+export async function getTrips(userId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
-  const filter = {};
-  if (userId) filter.userId = userId;
-  if (tripId) filter.tripId = tripId;
 
-  return await trips
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(pageSize)
-    .skip(pageSize * page)
-    .toArray();
+  const query = {};
+  if (userId) {
+    query.userId = toObjectId(userId);
+  }
+
+  return trips.find(query).sort({ startDate: -1, createdAt: -1 }).toArray();
 }
 
-// Get a specific trip by its ID
 export async function getTrip(tripId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
-  return await trips.findOne({ _id: tripId });
+
+  return trips.findOne({ _id: toObjectId(tripId) });
 }
 
-// Update a specific trip by its ID
-export async function updateTrip(tripId, updates) {
+export async function updateTrip(tripId, update) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
-  //console.log("Updating trip:", tripId, updates);
-  updates.updatedAt = new Date();
+  const now = new Date();
+  const toSet = {
+    ...update,
+    updatedAt: now,
+  };
 
-  const result = await trips.findOneAndUpdate(
-    { _id: tripId },
-    { $set: updates },
-    { returnDocument: "after" }
-  );
-  //console.log("Updated trip result:", result);
-  return result;
+  await trips.updateOne({ _id: toObjectId(tripId) }, { $set: toSet });
+  return trips.findOne({ _id: toObjectId(tripId) });
 }
 
-// Delete a specific trip by its ID
 export async function deleteTrip(tripId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
-  const result = await trips.deleteOne({ _id: tripId });
-  return result.deletedCount === 1;
+  const res = await trips.deleteOne({ _id: toObjectId(tripId) });
+  return res.deletedCount > 0;
 }
 
-//Destinations CRUD
+// Destinations
 
-// Add a destination to a specific trip
-export async function addDestinationToTrip(tripId, destination) {
+export async function updateDestination(tripId, destinationId, update) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
-  try {
-    const result = await trips.findOneAndUpdate(
-      { _id: tripId },
-      { $push: { destinations: destination }, $set: { updatedAt: new Date() } },
-      { returnDocument: "after" }
-    );
-    return result;
-  } catch (error) {
-    console.error("Error adding destination to trip:", error);
-    throw error;
-  }
-}
-
-// Get all destinations for a specific trip
-export async function getDestinations(tripId) {
-  const db = await getDb();
-  const trips = db.collection(COLLECTION);
-
-  try {
-    const trip = await trips.findOne(
-      { _id: new ObjectId(tripId) },
-      { projection: { destinations: 1 } }
-    );
-    return trip?.destinations || [];
-  } catch (error) {
-    console.error("Error fetching destinations for trip:", error);
-    throw error;
-  }
-}
-
-// Update a destination by its ID within a specific trip
-export async function updateDestination(tripId, destinationId, updates) {
-  const db = await getDb();
-  const trips = db.collection(COLLECTION);
-
-  try {
-    const result = await trips.findOneAndUpdate(
-      {
-        _id: new ObjectId(tripId),
-        "destinations._id": new ObjectId(destinationId),
+  const now = new Date();
+  const result = await trips.findOneAndUpdate(
+    { _id: toObjectId(tripId), "destinations._id": toObjectId(destinationId) },
+    {
+      $set: {
+        "destinations.$.city": update.city,
+        "destinations.$.state": update.state,
+        "destinations.$.startDate": update.startDate
+          ? new Date(update.startDate)
+          : null,
+        "destinations.$.endDate": update.endDate
+          ? new Date(update.endDate)
+          : null,
+        updatedAt: now,
       },
-      {
-        $set: Object.fromEntries(
-          Object.entries(updates).map(([key, value]) => [
-            `destinations.$.${key}`,
-            value,
-          ])
-        ),
-      },
-      { returnDocument: "after" }
-    );
-    return result.value;
-  } catch (error) {
-    console.error("Error updating destination:", error);
-    throw error;
-  }
+    },
+    { returnDocument: "after" }
+  );
+
+  return result.value;
 }
 
-// Delete a destination by its ID within a specific trip
 export async function deleteDestination(tripId, destinationId) {
   const db = await getDb();
   const trips = db.collection(COLLECTION);
 
-  try {
-    const result = await trips.findOneAndUpdate(
-      { _id: tripId },
-      { $pull: { destinations: { _id: destinationId } } },
-      { returnDocument: "after" }
-    );
-    return result;
-  } catch (error) {
-    console.error("Error deleting destination:", error);
-    throw error;
-  }
+  const now = new Date();
+  const result = await trips.findOneAndUpdate(
+    { _id: toObjectId(tripId) },
+    {
+      $pull: { destinations: { _id: toObjectId(destinationId) } },
+      $set: { updatedAt: now },
+    },
+    { returnDocument: "after" }
+  );
+
+  return result.value;
+}
+
+export async function addDestinationToTrip(tripId, destination) {
+  const db = await getDb();
+  const trips = db.collection(COLLECTION);
+
+  const now = new Date();
+  const destDoc = {
+    _id: new ObjectId(),
+    city: destination.city,
+    state: destination.state,
+    startDate: destination.startDate ? new Date(destination.startDate) : null,
+    endDate: destination.endDate ? new Date(destination.endDate) : null,
+    coords: destination.coords || null,
+  };
+
+  const result = await trips.findOneAndUpdate(
+    { _id: toObjectId(tripId) },
+    {
+      $push: { destinations: destDoc },
+      $set: { updatedAt: now },
+    },
+    { returnDocument: "after" }
+  );
+
+  return result.value;
 }

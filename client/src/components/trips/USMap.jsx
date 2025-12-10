@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import mapboxgl from "mapbox-gl";
 import React, { useEffect, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -83,6 +84,14 @@ export default function USMap({ visitedStates = [] }) {
       "#E0E0E0",
     ]);
   }, [visitedStateNames, mapLoaded]);
+
+  USMap.propTypes = {
+    visitedStates: PropTypes.arrayOf(PropTypes.string),
+  };
+
+  USMap.defaultProps = {
+    visitedStates: [],
+  };
 
   return (
     <div

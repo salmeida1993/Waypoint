@@ -1,281 +1,443 @@
-import { useState, useEffect } from "react";
-import { Modal, Button, Form, Row, Col, FloatingLabel } from "react-bootstrap";
+import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
+import {
+  Modal,
+  Button,
+  Form,
+  Row,
+  Col,
+  FloatingLabel,
+} from "react-bootstrap";
 import states from "../../data/states.json";
 
-export default function TripFormModal({ show, onHide, onSave, initialData }) {
-  const blankForm = {
-    title: "",
-    startDate: "",
-    endDate: "",
-    destinations: [],
-    expenses: {
-      transportation: "",
-      food: "",
-      lodging: "",
-      extra: "",
-    },
-    notes: "",
-  };
+/**
+ * TripFormModal
+ * - Handles both creating and editing a trip
+ * - Uses useMemo for blankForm / blankDestination so ESLint deps are satisfied
+ */
+export default function TripFormModal({
+  show,
+  onHide,
+  onSave,
+  initialData,
+}) {
+  // Base shapes for a new trip and destination row
+  const blankForm = useMemo(
+    () => ({
+      title: "",
+      startDate: "",
+      endDate: "",
+      notes: "",
+      expenses: {
+        lodging: "",
+        transport: "",
+        food: "",
+        misc: "",
+      },
+    }),
+    []
+  );
 
-  const blankDestination = { city: "", state: "", days: "" };
+  const blankDestination = useMemo(
+    () => [
+      {
+        city: "",
+        state: "",
+        days: "",
+      },
+    ],
+    []
+  );
 
-  const [formData, setFormData] = useState(blankForm);
-  const [newDestination, setNewDestination] = useState(blankDestination);
+  const [form, setForm] = useState(blankForm);
+  const [destinations, setDestinations] = useState(blankDestination);
 
+  // When modal opens or initialData changes, initialize form + destinations
   useEffect(() => {
     if (!show) return;
+
     if (initialData) {
-      console.log("Editing trip:", initialData);
-      setFormData({
-        _id: initialData._id,
-        title: initialData.title ?? "",
-        startDate: initialData.startDate ?? "",
-        endDate: initialData.endDate ?? "",
-        destinations: initialData.destinations ?? [],
+      setForm({
+        title: initialData.title || "",
+        startDate: initialData.startDate
+          ? initialData.startDate.slice(0, 10)
+          : "",
+        endDate: initialData.endDate
+          ? initialData.endDate.slice(0, 10)
+          : "",
+        notes: initialData.notes || "",
         expenses: {
-          transportation: initialData.expenses.transportation ?? 0,
-          food: initialData.expenses.food ?? 0,
-          lodging: initialData.expenses.lodging ?? 0,
-          extra: initialData.expenses.extra ?? 0,
+          lodging: initialData.expenses?.lodging ?? "",
+          transport: initialData.expenses?.transport ?? "",
+          food: initialData.expenses?.food ?? "",
+          misc: initialData.expenses?.misc ?? "",
         },
-        notes: initialData.notes ?? "",
+        _id: initialData._id, // keep id if editing
       });
+
+      setDestinations(
+        initialData.destinations?.length
+          ? initialData.destinations.map((d) => ({
+              city: d.city || "",
+              state: d.state || "",
+              days: d.days != null ? String(d.days) : "",
+            }))
+          : blankDestination
+      );
     } else {
-      setFormData(blankForm);
+      setForm(blankForm);
+      setDestinations(blankDestination);
     }
-  }, [initialData, show]);
+  }, [show, initialData, blankForm, blankDestination]);
 
-  useEffect(() => {
-    if (!show) {
-      setNewDestination(blankDestination);
-    }
-  }, [show]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value === "" ? "" : value }));
-  };
-
-  const handleExpenseChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
+  const updateExpenseField = (field, value) => {
+    setForm((prev) => ({
       ...prev,
-      expenses: { ...prev.expenses, [name]: value === "" ? 0 : Number(value) },
+      expenses: {
+        ...prev.expenses,
+        [field]: value,
+      },
     }));
-  };
-
-  const handleAddDestination = () => {
-    //if (!newDestination.city || !newDestination.state) return alert("Please fill in both city and state for the new destination.");
-    setFormData((prev) => ({
-      ...prev,
-      destinations: [...prev.destinations, { ...newDestination, days: parseInt(newDestination.days) || 0 }],
-    }));
-    setNewDestination(blankDestination);
   };
 
   const handleDestinationChange = (index, field, value) => {
-    const updatedDestinations = [...formData.destinations];
-    updatedDestinations[index][field] = value;
-    setFormData((prev) => ({ ...prev, destinations: updatedDestinations }));
+    setDestinations((prev) =>
+      prev.map((d, i) => (i === index ? { ...d, [field]: value } : d))
+    );
   };
 
-  const removeDestination = (index) => {
-    if (!window.confirm("Remove this destination?")) return;
-    setFormData((prev) => ({
+  const addDestinationRow = () => {
+    setDestinations((prev) => [
       ...prev,
-      destinations: prev.destinations.filter((_, i) => i !== index),
-    }));
+      { city: "", state: "", days: "" },
+    ]);
+  };
+
+  const removeDestinationRow = (index) => {
+    setDestinations((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.destinations.length === 0) {
-      return alert("Please add at least one destination to the trip.");
-    }
-    if (formData._id) {
-      onSave(formData, true); // Pass true to indicate edit
-    } else {
-      onSave(formData);
-    }
-    onHide();
+
+    const cleanedDestinations = destinations
+      .filter((d) => d.city || d.state)
+      .map((d) => ({
+        city: d.city.trim(),
+        state: d.state,
+        days: d.days ? Number(d.days) : 0,
+      }));
+
+    const cleanedExpenses = {
+      lodging: Number(form.expenses.lodging || 0),
+      transport: Number(form.expenses.transport || 0),
+      food: Number(form.expenses.food || 0),
+      misc: Number(form.expenses.misc || 0),
+    };
+
+    const payload = {
+      ...form,
+      destinations: cleanedDestinations,
+      expenses: cleanedExpenses,
+    };
+
+    onSave(payload);
   };
 
-  const tripDuration =
-    formData.startDate && formData.endDate
-      ? Math.ceil(
-          (new Date(formData.endDate) - new Date(formData.startDate)) /
-            (1000 * 60 * 60 * 24)
-        ) + 1
-      : 0;
+  const isEditMode = Boolean(initialData && initialData._id);
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg" scrollable >
-      <Modal.Header closeButton>
-        <Modal.Title>
-          {initialData ? "Edit Trip" : "Add a New Trip"}
-        </Modal.Title>
-      </Modal.Header>
-
+    <Modal show={show} onHide={onHide} centered>
       <Form onSubmit={handleSubmit}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isEditMode ? "Edit trip" : "Add a new trip"}
+          </Modal.Title>
+        </Modal.Header>
+
         <Modal.Body>
-          <Form.Group className="mb-3 trip-modal">
-            <Form.Label>Title</Form.Label>
+          <Form.Group className="mb-3" controlId="tripTitle">
+            <Form.Label>Trip title</Form.Label>
             <Form.Control
               type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
+              placeholder="Summer road trip"
+              value={form.title}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, title: e.target.value }))
+              }
               required
             />
           </Form.Group>
 
-          <Row>
-            <Col>
-              <Form.Group className="mb-3">
-                <Form.Label>Start Date</Form.Label>
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="tripStartDate">
+                <Form.Label>Start date</Form.Label>
                 <Form.Control
-                  className="trip-modal"
                   type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
+                  value={form.startDate}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      startDate: e.target.value,
+                    }))
+                  }
+                  required
                 />
               </Form.Group>
             </Col>
-            <Col>
-              <Form.Group className="mb-3 trip-modal">
-                <Form.Label>End Date</Form.Label>
+            <Col md={6}>
+              <Form.Group controlId="tripEndDate">
+                <Form.Label>End date</Form.Label>
                 <Form.Control
                   type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  min={formData.startDate}
-                  onChange={handleChange}
+                  value={form.endDate}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      endDate: e.target.value,
+                    }))
+                  }
+                  required
                 />
               </Form.Group>
             </Col>
           </Row>
 
-          {/* Destinations */}
-          <div className="mb-4">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <Form.Label>Destinations</Form.Label>
-              <Button size="sm" onClick={handleAddDestination} className="btn-add-trip">
-                + Add Destination
-              </Button>
-            </div>
+          <hr />
 
-            {formData.destinations.map((destination, index) => (
-              <div key={index} className="border rounded p-2 mb-2 bg-light">
-                <Row>
-                  <Col md={4}>
-                    <FloatingLabel label="City" className="mb-1">
-                      <Form.Control
-                        type="text"
-                        name="city"
-                        placeholder="Chicago"
-                        value={destination.city}
-                        onChange={(e) =>
-                          handleDestinationChange(index, "city", e.target.value)
-                        }
-                      />
-                    </FloatingLabel>
-                  </Col>
-                  <Col md={3}>
-                    <FloatingLabel label="State" className="mb-1">
-                      <Form.Control
-                        type="text"
-                        name="state"
-                        placeholder="IL"
-                        value={destination.state}
-                        onChange={(e) => {
-                          const val = e.target.value.toUpperCase();
-                          if (/^[A-Z]{0,2}$/.test(val)) {
-                            handleDestinationChange(index, "state", val);
-                          }
-                        }}
-                        list={`state-options-${index}`}
-                      />
-                    </FloatingLabel>
-                    <datalist id={`state-options-${index}`}>
-                      {states.map((s) => (
-                        <option key={s.code} value={s.code}>
-                          {s.name} ({s.code})
-                        </option>
-                      ))}
-                    </datalist>
-                  </Col>
-                  <Col md={3}>
-                    <FloatingLabel label="Days" className="mb-1">
-                      <Form.Control
-                        type="number"
-                        name="days"
-                        placeholder="3"
-                        min={0}
-                        max={tripDuration ?? undefined}
-                        value={destination.days}
-                        onChange={(e) => {
-                          const days = e.target.value;
-                          if (tripDuration && days > tripDuration) return;
-                          handleDestinationChange(index, "days", days);
-                        }}
-                        disabled={!tripDuration} // Disable if tripDuration is not valid
-                      />
-                    </FloatingLabel>
-                  </Col>
-                  <Col md={2}>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="btn-delete"
-                      onClick={() => removeDestination(index)}
-                    >
-                      Remove
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            ))}
-          </div>
+          <Form.Label>Destinations</Form.Label>
+          {destinations.map((dest, idx) => (
+            <Row className="mb-2" key={idx}>
+              <Col md={5}>
+                <FloatingLabel
+                  controlId={`destCity-${idx}`}
+                  label="City"
+                >
+                  <Form.Control
+                    type="text"
+                    value={dest.city}
+                    onChange={(e) =>
+                      handleDestinationChange(
+                        idx,
+                        "city",
+                        e.target.value
+                      )
+                    }
+                    placeholder="City"
+                  />
+                </FloatingLabel>
+              </Col>
+              <Col md={4}>
+                <FloatingLabel
+                  controlId={`destState-${idx}`}
+                  label="State"
+                >
+                  <Form.Select
+                    value={dest.state}
+                    onChange={(e) =>
+                      handleDestinationChange(
+                        idx,
+                        "state",
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="">Select state</option>
+                    {states.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </FloatingLabel>
+              </Col>
+              <Col md={3}>
+                <FloatingLabel
+                  controlId={`destDays-${idx}`}
+                  label="Days"
+                >
+                  <Form.Control
+                    type="number"
+                    min={0}
+                    value={dest.days}
+                    onChange={(e) =>
+                      handleDestinationChange(
+                        idx,
+                        "days",
+                        e.target.value
+                      )
+                    }
+                    placeholder="0"
+                  />
+                </FloatingLabel>
+              </Col>
+              <Col xs={12} className="mt-1">
+                {destinations.length > 1 && (
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    type="button"
+                    onClick={() => removeDestinationRow(idx)}
+                  >
+                    Remove stop
+                  </Button>
+                )}
+              </Col>
+            </Row>
+          ))}
 
-          {/* Expenses */}
-          <Row>
-            {["transportation", "food", "lodging", "extra"].map((key) => (
-              <Col md={3} key={key} className="mb-2">
-                <Form.Label className="text-capitalize">{key} Expense</Form.Label>
+          <Button
+            type="button"
+            variant="outline-secondary"
+            size="sm"
+            className="mt-2"
+            onClick={addDestinationRow}
+          >
+            + Add another stop
+          </Button>
+
+          <hr />
+
+          <Form.Label>Approximate expenses</Form.Label>
+          <Row className="mb-2">
+            <Col md={6}>
+              <Form.Group controlId="expLodging">
+                <Form.Label>Lodging</Form.Label>
                 <Form.Control
                   type="number"
-                  name={key}
-                  value={formData.expenses[key]}
-                  onChange={handleExpenseChange}
-                  placeholder="$0.00"
+                  min={0}
+                  value={form.expenses.lodging}
+                  onChange={(e) =>
+                    updateExpenseField("lodging", e.target.value)
+                  }
                 />
-              </Col>
-            ))}
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="expTransport">
+                <Form.Label>Transport</Form.Label>
+                <Form.Control
+                  type="number"
+                  min={0}
+                  value={form.expenses.transport}
+                  onChange={(e) =>
+                    updateExpenseField("transport", e.target.value)
+                  }
+                />
+              </Form.Group>
+            </Col>
           </Row>
 
-          {/* Notes */}
-          <Form.Group className="mt-3">
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="expFood">
+                <Form.Label>Food</Form.Label>
+                <Form.Control
+                  type="number"
+                  min={0}
+                  value={form.expenses.food}
+                  onChange={(e) =>
+                    updateExpenseField("food", e.target.value)
+                  }
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="expMisc">
+                <Form.Label>Misc</Form.Label>
+                <Form.Control
+                  type="number"
+                  min={0}
+                  value={form.expenses.misc}
+                  onChange={(e) =>
+                    updateExpenseField("misc", e.target.value)
+                  }
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Form.Group controlId="tripNotes" className="mb-0">
             <Form.Label>Notes</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
+              value={form.notes}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  notes: e.target.value,
+                }))
+              }
+              placeholder="Highlights, favorite spots, or anything you want to remember."
             />
           </Form.Group>
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" className="btn-delete m-1" onClick={onHide}>
+          <Button
+            type="button"
+            variant="secondary"
+            className="btn-cancel"
+            onClick={onHide}
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="primary" className="btn-add-trip">
-            Save Trip
+          <Button
+            type="submit"
+            variant="primary"
+            className="btn-approve"
+          >
+            {isEditMode ? "Save changes" : "Add trip"}
           </Button>
         </Modal.Footer>
       </Form>
     </Modal>
   );
 }
+
+TripFormModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  onHide: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  initialData: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    title: PropTypes.string,
+    startDate: PropTypes.string,
+    endDate: PropTypes.string,
+    notes: PropTypes.string,
+    destinations: PropTypes.arrayOf(
+      PropTypes.shape({
+        city: PropTypes.string,
+        state: PropTypes.string,
+        days: PropTypes.oneOfType([
+          PropTypes.string,
+          PropTypes.number,
+        ]),
+      })
+    ),
+    expenses: PropTypes.shape({
+      lodging: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+      transport: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+      food: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+      misc: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+    }),
+  }),
+};
+
+TripFormModal.defaultProps = {
+  initialData: null,
+};

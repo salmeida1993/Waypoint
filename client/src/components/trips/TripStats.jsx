@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 
@@ -36,42 +37,53 @@ export default function TripStats({ trips, visitedStates }) {
     setTotalStates(stateCount);
   }, [trips, visitedStates]);
 
+  TripStats.propTypes = {
+    trips: PropTypes.arrayOf(PropTypes.object).isRequired,
+    visitedStates: PropTypes.arrayOf(PropTypes.string),
+  };
+
+  TripStats.defaultProps = {
+    visitedStates: [],
+  };
+
   return (
     <div className="mb-4">
-        <Row xs={1} md={4} className="g-3">
-            <Col>
-                <Card className="text-center stats-card">
-                    <Card.Body>
-                        <Card.Title>Total States Visited</Card.Title>
-                        <Card.Text className="stats-card-states">{totalStates} / 51*</Card.Text>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col>
-                <Card className="text-center stats-card">
-                    <Card.Body>
-                        <Card.Title>Total Trips Taken</Card.Title>
-                        <Card.Text>{totalTrips}</Card.Text>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col>
-                <Card className="text-center stats-card">
-                    <Card.Body>
-                        <Card.Title>Total Expenses Spent</Card.Title>
-                        <Card.Text>${totalExpenses.toFixed(2)}</Card.Text>
-                    </Card.Body>
-                </Card>
-            </Col>
-            <Col>
-                <Card className="text-center stats-card">
-                    <Card.Body>
-                        <Card.Title>Total Days Traveled</Card.Title>
-                        <Card.Text>{totalDays}</Card.Text>
-                    </Card.Body>
-                </Card>
-            </Col>
-        </Row>
+      <Row xs={1} md={4} className="g-3">
+        <Col>
+          <Card className="text-center stats-card">
+            <Card.Body>
+              <Card.Title>Total States Visited</Card.Title>
+              <Card.Text className="stats-card-states">
+                {totalStates} / 51*
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col>
+          <Card className="text-center stats-card">
+            <Card.Body>
+              <Card.Title>Total Trips Taken</Card.Title>
+              <Card.Text>{totalTrips}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col>
+          <Card className="text-center stats-card">
+            <Card.Body>
+              <Card.Title>Total Expenses Spent</Card.Title>
+              <Card.Text>${totalExpenses.toFixed(2)}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col>
+          <Card className="text-center stats-card">
+            <Card.Body>
+              <Card.Title>Total Days Traveled</Card.Title>
+              <Card.Text>{totalDays}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

@@ -70,7 +70,9 @@ export default function StateDetail() {
     return (
       <div className="card" style={{ marginTop: 16 }}>
         <p>State not found.</p>
-        <p><Link to="/states">Back to all states</Link></p>
+        <p>
+          <Link to="/states">Back to all states</Link>
+        </p>
       </div>
     );
   }
@@ -79,15 +81,23 @@ export default function StateDetail() {
 
   return (
     <div className="card" style={{ marginTop: 16 }}>
-      <p><Link to="/states">← Back to all states</Link></p>
+      <p>
+        <Link to="/states">← Back to all states</Link>
+      </p>
 
       <header>
         <h1 style={{ margin: "0 0 8px" }}>
           {state.name} <span style={{ opacity: 0.7 }}>({state.code})</span>
         </h1>
         <div style={{ color: "var(--muted)" }}>
-          Capital: <strong>{state.capital}</strong> · Region: <strong>{state.region}</strong>
-          {state.nickname ? <> · Nickname: <strong>{state.nickname}</strong></> : null}
+          Capital: <strong>{state.capital}</strong> · Region:{" "}
+          <strong>{state.region}</strong>
+          {state.nickname ? (
+            <>
+              {" "}
+              · Nickname: <strong>{state.nickname}</strong>
+            </>
+          ) : null}
         </div>
       </header>
 
@@ -115,7 +125,10 @@ export default function StateDetail() {
         <p className="help">Add quick facts, links, or your own notes here.</p>
 
         {/* Notes Textarea + Controls */}
-        <label htmlFor="state-notes" style={{ display: "block", fontWeight: 600, margin: "12px 0 6px" }}>
+        <label
+          htmlFor="state-notes"
+          style={{ display: "block", fontWeight: 600, margin: "12px 0 6px" }}
+        >
           Your notes for {state.name}
         </label>
         <textarea
@@ -135,7 +148,14 @@ export default function StateDetail() {
           }}
         />
 
-        <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 8,
+            alignItems: "center",
+          }}
+        >
           <button
             onClick={handleSave}
             disabled={!isDirty}
@@ -143,7 +163,9 @@ export default function StateDetail() {
               padding: "8px 12px",
               borderRadius: 8,
               border: "1px solid var(--border, #2b3142)",
-              background: isDirty ? "var(--accent, #4f46e5)" : "var(--panel, #0f1425)",
+              background: isDirty
+                ? "var(--accent, #4f46e5)"
+                : "var(--panel, #0f1425)",
               color: isDirty ? "#fff" : "var(--muted, #9aa4b2)",
               cursor: isDirty ? "pointer" : "not-allowed",
               fontWeight: 600,
@@ -170,10 +192,15 @@ export default function StateDetail() {
             Discard changes
           </button>
 
-          <span role="status" aria-live="polite" style={{ marginLeft: 8, color: "var(--muted)" }}>
-            {banner || (lastSavedAt
-              ? `Last saved ${lastSavedAt.toLocaleString()}`
-              : "Not saved yet")}
+          <span
+            role="status"
+            aria-live="polite"
+            style={{ marginLeft: 8, color: "var(--muted)" }}
+          >
+            {banner ||
+              (lastSavedAt
+                ? `Last saved ${lastSavedAt.toLocaleString()}`
+                : "Not saved yet")}
           </span>
         </div>
       </section>

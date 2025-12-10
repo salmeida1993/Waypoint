@@ -6,13 +6,17 @@
   --pad: 16px;
   --radius: 12px;
 
-  --bg: #202A44;
+  --bg: #202a44;
   --card: #111827;
-  --text: #DCF2F5;
+  --text: #dcf2f5;
   --muted: #9ca3af;
-  --accent: #D1B46D;
+  --accent: #d1b46d;
   --danger: #ef4444;
   --standout: #28a745;
+
+  /* NEW: extra neutrals + borders for layout */
+  --surface: #0b1120;
+  --border: #2b3142;
 }
 
 /* =========================
@@ -22,34 +26,41 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
 body {
   margin: 0;
-    font-family: 
-    'Bellota Text',
-    'Nunito',
-    sans-serif,
-    ui-sans-serif,
-    system-ui,;
+  font-family: "Bellota Text", "Nunito", sans-serif, ui-sans-serif, system-ui;
   background: var(--bg);
   color: var(--text);
   line-height: 1.45;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-style: normal;
   font-weight: 700;
   color: var(--text);
-  font-family: 'Bellota Text';
+  font-family: "Bellota Text";
 }
 
-p, li, label, button, input, .btn {
+p,
+li,
+label,
+button,
+input,
+.btn {
   font-style: normal;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   color: var(--text);
   font-weight: 400;
   margin: 0;
@@ -59,7 +70,8 @@ p, li, label, button, input, .btn {
   font-weight: 1000;
 }
 
-.modal-title, .form-label {
+.modal-title,
+.form-label {
   font-weight: 600;
   color: var(--text);
 }
@@ -74,6 +86,15 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* NEW: visible focus styles for keyboard users */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* =========================
@@ -94,6 +115,13 @@ nav a {
   max-width: 2048px;
   margin: 0 auto;
   padding: var(--pad);
+}
+
+/* NEW: generic page wrapper to keep content nicely centered */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem var(--pad);
 }
 
 /* =========================
@@ -170,37 +198,45 @@ ul {
   padding: 3rem 2rem;
   border-radius: 16px;
   background:
-    radial-gradient(1200px 400px at -10% -20%, rgba(255,255,255,0.06), transparent 60%),
-    radial-gradient(900px 300px at 120% 0%, rgba(255,255,255,0.06), transparent 60%),
-    linear-gradient(135deg, rgba(80,180,255,0.18), rgba(150,120,255,0.12));
+    radial-gradient(
+      1200px 400px at -10% -20%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 300px at 120% 0%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    linear-gradient(135deg, rgba(80, 180, 255, 0.18), rgba(150, 120, 255, 0.12));
   border: 1px solid var(--border, #2b3142);
 }
 
 .home-title {
   font-size: clamp(2rem, 4vw, 3rem);
-  margin: 0 0 .5rem 0;
+  margin: 0 0 0.5rem 0;
   color: var(--text, #eaf0ff);
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
 }
 
 .home-subtitle {
   max-width: 60ch;
   line-height: 1.6;
-  opacity: .9;
+  opacity: 0.9;
   margin: 0 0 1.5rem 0;
 }
 
 .home-cta {
   display: flex;
   flex-wrap: wrap;
-  gap: .75rem;
+  gap: 0.75rem;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--border, #2b3142);
   background: var(--card, #121a24);
@@ -208,12 +244,31 @@ ul {
   text-decoration: none;
   font-weight: 600;
 }
-.btn:hover { transform: translateY(-1px); }
-.btn-lg { padding: .9rem 1.15rem; }
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn-lg {
+  padding: 0.9rem 1.15rem;
+}
 .btn.primary {
   background: linear-gradient(135deg, #5aa8ff, #7a6bff);
   border-color: transparent;
   color: white;
+}
+
+/* NEW: approve / cancel button variants for consistent colors */
+.btn-approve,
+.btn-approve.btn {
+  background-color: var(--standout);
+  border-color: var(--standout);
+  color: #fff;
+}
+
+.btn-cancel,
+.btn-cancel.btn {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
 }
 
 /* Features grid */
@@ -230,7 +285,7 @@ ul {
   background: var(--card, #0f1621);
 }
 .feature-card h3 {
-  margin: 0 0 .25rem 0;
+  margin: 0 0 0.25rem 0;
   font-size: 1.1rem;
 }
 
@@ -238,20 +293,20 @@ ul {
 .home-tip {
   display: flex;
   align-items: center;
-  gap: .6rem;
-  padding: .8rem 1rem;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
   border: 1px dashed var(--border, #2b3142);
   border-radius: 10px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
 }
 .tip-badge {
-  font-size: .75rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: .6px;
-  padding: .25rem .5rem;
+  letter-spacing: 0.6px;
+  padding: 0.25rem 0.5rem;
   border-radius: 999px;
-  background: rgba(122,107,255,.2);
-  border: 1px solid rgba(122,107,255,.4);
+  background: rgba(122, 107, 255, 0.2);
+  border: 1px solid rgba(122, 107, 255, 0.4);
 }
 
 /* =========================
@@ -311,7 +366,6 @@ ul {
   border-color: var(--danger);
 }
 
-
 /* =========================
    Navbar Customization
 ========================= */
@@ -346,4 +400,89 @@ ul {
 .modal-content {
   background-color: var(--bg);
   color: var(--text);
+}
+
+/* =========================
+   PAGE MODULES (for rubric)
+   - Trips
+   - Account
+   - States
+========================= */
+
+/* Trips page layout & hierarchy */
+.trip-page {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.trip-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.trip-page-title {
+  font-size: 2rem;
+}
+
+.trip-page-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.trip-secondary-section {
+  margin-top: 2rem;
+}
+
+.trip-secondary-section h2 {
+  margin-bottom: 1rem;
+}
+
+/* Account page */
+.account-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem var(--pad);
+}
+
+.account-page h1 {
+  margin-bottom: 1.5rem;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* States / Map page */
+.states-page {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.states-sidebar {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Make SVG map more usable */
+.us-map svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* If state shapes are clickable, make them keyboard-accessible */
+.state-shape {
+  cursor: pointer;
+}
+.state-shape:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

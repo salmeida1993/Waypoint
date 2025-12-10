@@ -1,4 +1,3 @@
-// routes/auth.js
 import express from "express";
 import bcrypt from "bcryptjs";
 import passport from "passport";
@@ -14,109 +13,149 @@ import {
 
 const router = express.Router();
 
-// Middleware
+// Make sure we can parse JSON
 router.use(express.json());
 
-
-// Registration endpoint
+/**
+ * POST /api/auth/register
+ * Body: { name, email, password }
+ */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
+
     if (!name || !email || !password || password.length < 6) {
       return res.status(400).json({ message: "Invalid input" });
     }
+
     if (await emailExists(email)) {
       return res.status(409).json({ message: "Email already registered" });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await createUser({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
+      name,
+      email,
       passwordHash: hashedPassword,
       visitedStates: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
-    delete user.passwordHash; // Remove password from user object
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error("Error logging in after register:", err);
+        return res
+          .status(500)
+          .json({ message: "Error completing registration" });
+      }
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user,
+      return res.status(201).json({
+        message: "User registered successfully",
+        user,
+      });
     });
   } catch (error) {
+    console.error("Error registering user:", error);
     res.status(500).json({ message: "Error registering user" });
   }
 });
 
-// Login endpoint
+/**
+ * POST /api/auth/login
+ * Body: { email, password }
+ */
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
 
     if (!user) {
       return res.status(401).json({
-        message: info?.message || "Invalid credentials"
+        message: info?.message || "Invalid credentials",
       });
     }
 
     req.logIn(user, (err) => {
       if (err) return next(err);
-
-      const safeUser = { ...user };
-      delete safeUser.passwordHash;
-
-      return res.json({ user: safeUser });
+      return res.json({ user });
     });
   })(req, res, next);
 });
 
+/**
+ * GET /api/auth/me
+ */
+router.get("/me", isAuthenticated, async (req, res) => {
+  res.json({ user: req.user });
+});
 
-// Edit a user
+/**
+ * PATCH /api/auth/me
+ * Body: { name?, email? }
+ */
 router.patch("/me", isAuthenticated, async (req, res) => {
   try {
     const { name, email } = req.body || {};
-    const updateData = {};
+    const updates = {};
 
-    if (!name) {
-      return res.status(400).json({ message: "Invalid name" });
-    }
-    updateData.name = name.trim();
-
-    if (email) {
-      const normalizedEmail = email.trim().toLowerCase();
-      if (
-        (await emailExists(normalizedEmail)) &&
-        normalizedEmail !== req.user.email
-      ) {
+    if (name && name.trim()) updates.name = name.trim();
+    if (email && email.trim()) {
+      const lowerEmail = email.trim().toLowerCase();
+      if (lowerEmail !== req.user.email && (await emailExists(lowerEmail))) {
         return res
           .status(409)
           .json({ message: "Email has already been registered" });
       }
-      updateData.email = normalizedEmail;
+      updates.email = lowerEmail;
     }
 
-    await updateUser(req.user._id, updateData);
-    const updatedUser = await findUserById(req.user._id);
-    delete updatedUser.passwordHash;
-    res.status(200).json({ message: "User updated", user: updatedUser });
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No changes provided" });
+    }
 
+    const updated = await updateUser(req.user._id, updates);
+    res.json({ message: "User updated", user: updated });
   } catch (error) {
-    return res.status(500).json({ message: "Error updating user" });
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Error updating user" });
   }
 });
 
-// Get current user
-router.get("/me", isAuthenticated, async (req, res) => {
-  delete req.user.passwordHash;
-  res.json({ user: req.user });
+/**
+ * GET /api/auth/me/visited
+ */
+router.get("/me/visited", isAuthenticated, async (req, res) => {
+  const visitedStates = req.user.visitedStates || [];
+  res.json({ visitedStates });
 });
 
-// Logout endpoint
+/**
+ * PUT /api/auth/me/visited
+ * Body: { visitedStates: string[] }
+ */
+router.put("/me/visited", isAuthenticated, async (req, res) => {
+  try {
+    const { visitedStates } = req.body || {};
+    if (!Array.isArray(visitedStates)) {
+      return res
+        .status(400)
+        .json({ message: "visitedStates must be an array of strings" });
+    }
+
+    const updated = await updateUser(req.user._id, { visitedStates });
+    res.json({ visitedStates: updated.visitedStates || [] });
+  } catch (error) {
+    console.error("Error updating visited states:", error);
+    res.status(500).json({ message: "Error updating visited states" });
+  }
+});
+
+/**
+ * POST /api/auth/logout
+ */
 router.post("/logout", (req, res) => {
   req.logout((err) => {
     if (err) {
+      console.error("Error logging out:", err);
       return res.status(500).json({ message: "Error logging out" });
     }
     res.json({ message: "Logout successful" });

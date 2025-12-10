@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Button } from "react-bootstrap";
 
 export default function TripFilters({
@@ -10,6 +11,18 @@ export default function TripFilters({
   onStateFilterChange,
   onReset,
 }) {
+  TripFilters.propTypes = {
+    sortFilter: PropTypes.string.isRequired,
+    maxExpense: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      .isRequired,
+    onSortChange: PropTypes.func.isRequired,
+    onMaxExpenseChange: PropTypes.func.isRequired,
+    stateFilter: PropTypes.string.isRequired,
+    states: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onStateFilterChange: PropTypes.func.isRequired,
+    onReset: PropTypes.func.isRequired,
+  };
+
   return (
     <div className="card p-3 mb-4">
       <div className="row justify-content-between">
@@ -40,7 +53,7 @@ export default function TripFilters({
             placeholder="e.g., 1000"
           />
         </div>
-        
+
         {/* State Filter */}
         <div className="col-md-3 mb-2">
           <label>Filter by State</label>

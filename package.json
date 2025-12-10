@@ -5,11 +5,10 @@
   "main": "backend.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./node_modules/nodemon/bin/nodemon.js backend.js",
-    "dev": "cd client && npm install && vite",
-    "build": "cd client && npm install && npm run build && cp -r dist ../dist",
-    "format": "prettier --write ",
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build && cp -r dist ../dist",
+    "format": "prettier --write .",
     "lint": "eslint ."
   },
   "repository": {
@@ -24,11 +23,13 @@
   },
   "homepage": "https://github.com/salmeida1993/CS5610-Project-3#readme",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "@dotenvx/dotenvx": "^1.51.1",
+    "bcryptjs": "^3.0.3",
+    "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "express-session": "^1.18.2",
     "http-proxy-middleware": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

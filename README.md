@@ -2,7 +2,6 @@
 
 ### Authors - Stewart Almeida, Theresa Coleman
 
-
 [Course: CS5610 Web Development](https://johnguerra.co/classes/webDevelopment_online_fall_2025/)
 
 Project 4
@@ -16,7 +15,6 @@ Instructor: John Alexis Guerra Gomez
 [Stewart - My Trips](https://youtu.be/s2tTLCJJgww)
 
 [Theresa - User Account/State Pages](https://youtu.be/2mCPrRhkKbM)
-
 
 ## 🎯 Project Objective
 
@@ -37,15 +35,15 @@ Each user can:
 
 ## 🧠 Tech Stack
 
--- Frontend	React (Hooks), Vite, HTML5, CSS3
+-- Frontend React (Hooks), Vite, HTML5, CSS3
 
--- Backend	Node.js, Express
+-- Backend Node.js, Express
 
--- Database	MongoDB (using official driver, no Mongoose)
+-- Database MongoDB (using official driver, no Mongoose)
 
--- Libraries	react-simple-maps (for U.S. map), bcryptjs, Passport
+-- Libraries react-simple-maps (for U.S. map), bcryptjs, Passport
 
--- Development Tools	Prettier (code formatting), ESLint (linting), GitHub, VS Code
+-- Development Tools Prettier (code formatting), ESLint (linting), GitHub, VS Code
 
 ## 🧑‍🎨 Design Overview
 
@@ -53,6 +51,7 @@ Theresa focused on user account management and authentication, while Stewart foc
 Together, these features create a complete travel-tracking experience.
 
 ### Key Features
+
 #### 👤 User Accounts (Theresa)
 
 Create account (/register)
@@ -76,7 +75,9 @@ Calculate total cost and states visited
 Display interactive map using react-simple-maps
 
 ## 🧩 Database Structure
+
 Collections
+
 ```
 users
 {
@@ -113,6 +114,7 @@ trips
 ```
 
 ## ⚙️ Local Installation / Setup / Development
+
 ### 🧱 Prerequisites
 
 Node.js 22+
@@ -120,10 +122,13 @@ Node.js 22+
 MongoDB running locally (mongodb://127.0.0.1:27017)
 
 Create database called `tripTracker`
+
 - Create two collections: `users` and `trips`
+
 ### Scripts
 
 Open 2 terminal windows from the root of the project repo and run the following commands in their respective window:
+
 1. Window 1: Backend
    ```
    npm start
@@ -137,20 +142,24 @@ Open 2 terminal windows from the root of the project repo and run the following 
    cd client
    npm run dev
    ```
-Make sure both the backend and frontend are running simultaneously.
+   Make sure both the backend and frontend are running simultaneously.
 
 ## 🔐 Environment Variables
 
 Create a .env file at the project root with:
+
 ```
 MONGO_URI=mongodb://127.0.0.1:27017/tripTracker
 PORT=3000
 MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
+
 Create a .env file inside client with:
+
 ```
 VITE_MAPBOX_TOKEN=YOUR_MAPBOX_TOKEN
 ```
+
 ## 🧭 Usage Instructions
 
 Visit http://localhost:5174

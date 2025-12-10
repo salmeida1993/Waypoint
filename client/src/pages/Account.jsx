@@ -1,32 +1,44 @@
+// client/src/pages/Account.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Account() {
   const { user } = useAuth();
-  if (!user)
+
+  if (!user) {
     return (
-      <p className="card" style={{ margin: "2rem" }}>
-        You are not signed in.
-      </p>
-    );
-  return (
-    <div className="card" style={{ maxWidth: 640, margin: "2rem auto" }}>
-      <h2>My Account</h2>
-      <p>
-        <strong>Name:</strong> {user.name}
-      </p>
-      <p>
-        <strong>Email:</strong> {user.email}
-      </p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <Link to="/account/edit" className="button">
-          Edit
+      <section className="account-page">
+        <h1>Account</h1>
+        <p>You need to log in to view your account.</p>
+        <Link to="/login" className="btn primary">
+          Go to login
         </Link>
-        <Link to="/account/delete" className="button danger">
-          Delete
+      </section>
+    );
+  }
+
+  return (
+    <section className="account-page">
+      <h1>Your account</h1>
+
+      <div className="card">
+        <p>
+          <strong>Name:</strong> {user.name}
+        </p>
+        <p>
+          <strong>Email:</strong> {user.email}
+        </p>
+      </div>
+
+      <div className="account-actions">
+        <Link to="/account/edit" className="btn btn-approve">
+          Edit account
+        </Link>
+        <Link to="/account/delete" className="btn btn-cancel">
+          Delete account
         </Link>
       </div>
-    </div>
+    </section>
   );
 }

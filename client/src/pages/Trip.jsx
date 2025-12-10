@@ -1,10 +1,12 @@
+// client/src/pages/Trip.jsx
 import React, { useEffect, useState, useMemo } from "react";
-import { Button, Modal,  } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import USMap from "../components/trips/USMap.jsx";
 import TripFormModal from "../components/trips/TripFormModal.jsx";
 import TripAccordion from "../components/trips/TripAccordion.jsx";
 import TripStats from "../components/trips/TripStats.jsx";
 import TripFilters from "../components/trips/TripFilters.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function getVisitedStates(trips) {
   const states = new Set();
@@ -25,6 +27,9 @@ function getTotalExpense(trip) {
 }
 
 export default function Trip() {
+  const { user } = useAuth();
+  const userId = user?._id;
+
   const [showTripForm, setShowTripForm] = useState(false);
   const [trips, setTrips] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
@@ -32,75 +37,71 @@ export default function Trip() {
   const [sortFilter, setSortFilter] = useState("none");
   const [stateFilter, setStateFilter] = useState("");
   const [maxExpense, setMaxExpense] = useState("");
-  const [userId, setUserId] = useState(null);
 
+  // Load trips when we know the userId
   useEffect(() => {
-    // Fetch user ID from auth context or other source
-    async function fetchUserId() {
+    if (!userId) return;
+
+    async function loadTrips() {
       try {
-        console.log("Fetching user ID..."); // DEBUG
-        const res = await fetch("/users/me");
+        const res = await fetch(`/api/trips?userId=${userId}`);
         if (!res.ok) {
-          setUserId(null);
+          console.error("Failed to fetch trips", res.status);
           return;
         }
         const data = await res.json();
 
-        setUserId(data.user._id);
-      } catch (error) {
-        console.error("Error fetching user ID:", error);
-      }
-    }
-    fetchUserId();
-  }, []);
-
-  useEffect(() => {
-    async function loadTrips() {
-      try {
-        const res = await fetch(`/api/trips?userId=${userId}`);
-        const data = await res.json();
-        console.log("Fetched trips:", data); // DEBUG
         setTrips(data);
       } catch (error) {
-        console.error("Error fetching trips:", error);
+        console.error("Error loading trips:", error);
       }
     }
+
     loadTrips();
   }, [userId]);
 
   const handleEditTrip = (trip) => {
-    console.log("Editing trip:", trip);
     setSelectedTrip(trip);
     setShowTripForm(true);
   };
 
   const handleSaveTrip = async (trip) => {
+    if (!userId) return;
+
     try {
       let savedTrip;
       if (trip._id) {
         // Edit existing trip
-        console.log("Saving trip:", trip._id); // DEBUG
+
         const response = await fetch(`/api/trips/${trip._id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(trip),
         });
+        if (!response.ok) {
+          console.error("Failed to update trip");
+          return;
+        }
         savedTrip = await response.json();
         setTrips((prev) =>
           prev.map((t) => (t._id === savedTrip._id ? savedTrip : t))
         );
       } else {
         // Add new trip
-        console.log("Adding new trip", trip); // DEBUG
+
         const response = await fetch(`/api/trips/userId/${userId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(trip),
         });
+        if (!response.ok) {
+          console.error("Failed to create trip");
+          return;
+        }
         savedTrip = await response.json();
         setTrips((prev) => [...prev, savedTrip]);
       }
-      setSelectedTrip(null); // Clear selected trip after saving
+      setSelectedTrip(null);
       setShowTripForm(false);
     } catch (error) {
       console.error("Error saving trip:", error);
@@ -112,27 +113,28 @@ export default function Trip() {
       !window.confirm(
         `Delete trip "${trip.title}"? This action cannot be undone.`
       )
-    )
+    ) {
       return;
-    console.log("Deleting trip:", trip._id);
-    try {
-      fetch(`/api/trips/${trip._id}`, {
-        method: "DELETE",
-      }).then((res) => {
+    }
+
+    if (!trip._id) return;
+
+    fetch(`/api/trips/${trip._id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
         if (res.ok) {
           setTrips((prev) => prev.filter((t) => t._id !== trip._id));
         } else {
           console.error("Failed to delete trip");
         }
+      })
+      .catch((err) => {
+        console.error("Error deleting trip:", err);
       });
-    } catch (error) {
-      console.error("Error deleting trip:", error);
-    }
   };
 
-  // Get list of visited states from trips
   const visitedStates = getVisitedStates(trips);
-  console.log("Visited states:", visitedStates); // DEBUG
 
   const filteredTrips = useMemo(() => {
     let t = [...trips];
@@ -146,9 +148,11 @@ export default function Trip() {
     } else if (sortFilter === "lowestExpense") {
       t.sort((a, b) => getTotalExpense(a) - getTotalExpense(b));
     }
+
     if (maxExpense !== "") {
       t = t.filter((trip) => getTotalExpense(trip) <= Number(maxExpense));
     }
+
     if (stateFilter !== "") {
       t = t.filter((trip) =>
         trip.destinations?.some(
@@ -169,31 +173,37 @@ export default function Trip() {
   return (
     <div className="trip-page container">
       <h1 className="mb-5 display-1 text-center mytrips">My Trips</h1>
+
       <div className="row mb-2">
         <div className="col">
-          <h3 className="text-left mt-3 mb-3">Track where you've been across the U.S.</h3>
+          <h3 className="text-left mt-3 mb-3">
+            Track where you've been across the U.S.
+          </h3>
         </div>
         <div className="col">
-          <h3 className="text-center mt-3 mb-3">View your overall travel stats</h3>
+          <h3 className="text-center mt-3 mb-3">
+            View your overall travel stats.
+          </h3>
         </div>
         <div className="col">
-          <h3 className="text-end mt-3 mb-3">See what's left to explore</h3>
+          <h3 className="text-end mt-3 mb-3">
+            See what&apos;s left to explore
+          </h3>
         </div>
       </div>
-      {/* SVG Map Component */}
+
       <div className="mb-4">
         <USMap visitedStates={visitedStates} />
       </div>
 
-      {/* Trip Stats Component */}
       <TripStats trips={trips} visitedStates={visitedStates} />
 
       <div className="row mb-3 align-items-center">
         <div className="col-md-6 mb-2 justify-content-center d-flex">
-          {/* Button to open Trip Form Modal */}
           <Button
             className="btn btn-add-trip w-50"
             variant="primary"
+            type="button"
             onClick={() => {
               setSelectedTrip(null);
               setShowTripForm(true);
@@ -203,16 +213,7 @@ export default function Trip() {
           </Button>
         </div>
 
-        {/* Trip Form Modal */}
-        <TripFormModal
-          show={showTripForm}
-          onHide={() => setShowTripForm(false)}
-          onSave={handleSaveTrip}
-          initialData={selectedTrip}
-        />
-
         <div className="col-md-6 mb-2 text-md-left">
-          {/* Trip Filters Component */}
           <TripFilters
             sortFilter={sortFilter}
             maxExpense={maxExpense}
@@ -226,7 +227,6 @@ export default function Trip() {
         </div>
       </div>
 
-      {/* Trip Accordion Component */}
       <div className="mt-4">
         <TripAccordion
           trips={filteredTrips}
@@ -234,6 +234,13 @@ export default function Trip() {
           onDelete={handleDeleteTrip}
         />
       </div>
+
+      <TripFormModal
+        show={showTripForm}
+        onHide={() => setShowTripForm(false)}
+        onSave={handleSaveTrip}
+        initialData={selectedTrip}
+      />
     </div>
   );
 }

@@ -1,44 +1,76 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Home() {
-  const { user } = useAuth();
-
   return (
-    <section className="home">
-      <div className="home-hero">
-        <h1 className="home-title">Plan. Explore. Remember.</h1>
-        <p className="home-subtitle">
-          Track the states you’ve visited, map your next trip, and keep all your travel memories in one place.
-        </p>
+    <main className="home page">
+      {/* Hero section */}
+      <section className="home-hero" aria-labelledby="home-heading">
+        <div>
+          <h1 id="home-heading" className="home-title">
+            Waypoint – your US travel companion
+          </h1>
+          <p className="home-subtitle">
+            Track your trips across the United States, see which states
+            you&apos;ve visited, and plan what&apos;s left to explore. Waypoint
+            keeps your journeys organized in one place.
+          </p>
 
-        <div className="home-cta">
-          <Link className="btn btn-lg primary" to="/states">Browse States</Link>
-          {user ? (
-            <>
-              <Link className="btn btn-lg" to="/mytrip">Track your trips</Link>
-            </>
-          ) : (
-            <>
-              <Link className="btn btn-lg" to="/register">Create Account</Link>
-              <Link className="btn btn-lg" to="/login">Sign In</Link>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="home-features">
-        <div className="feature-card">
-          <h3>Auto-update Map</h3>
-          <p>Visibly keep track of where you've been on an interactive map.</p>
-        </div>
-        <div className="feature-card">
-          <h3>Trip Tracker</h3>
-          <p>Track multi-city routes, dates, budgets, and notes—keep it all organized.</p>
+          <div className="home-cta">
+            <Link to="/register" className="btn primary btn-lg">
+              Create an account
+            </Link>
+            <Link to="/login" className="btn btn-lg">
+              Log in
+            </Link>
+          </div>
         </div>
 
-      </div>
-    </section>
+        <div className="home-tip">
+          <span className="tip-badge">TIP</span>
+          <p>
+            After you sign in, open <strong>My Trips</strong> to add detailed
+            trips and see your visited states on the map.
+          </p>
+        </div>
+      </section>
+
+      {/* Feature grid */}
+      <section aria-label="Waypoint features">
+        <div className="home-features">
+          <article className="feature-card">
+            <h3>Log detailed trips</h3>
+            <p>
+              Add trips with multiple destinations, dates, and expenses so you
+              can remember exactly where you went and when.
+            </p>
+          </article>
+
+          <article className="feature-card">
+            <h3>See visited states</h3>
+            <p>
+              View your visited states on an interactive US map and quickly see
+              which parts of the country you&apos;ve explored.
+            </p>
+          </article>
+
+          <article className="feature-card">
+            <h3>Track travel stats</h3>
+            <p>
+              Keep an eye on how many trips you&apos;ve taken, how many days
+              you&apos;ve traveled, and your overall spending.
+            </p>
+          </article>
+
+          <article className="feature-card">
+            <h3>Private to your account</h3>
+            <p>
+              Your trips and visited states are tied to your personal account,
+              so you can log back in and pick up where you left off.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
   );
 }

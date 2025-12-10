@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Accordion, Card, Row, Col, Button } from "react-bootstrap";
 
 function sumExpensesSafe(expenses) {
@@ -27,11 +28,35 @@ export default function TripAccordion({ trips, onEdit, onDelete }) {
     );
   }
 
+  TripAccordion.propTypes = {
+    trips: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+        title: PropTypes.string,
+        startDate: PropTypes.string,
+        endDate: PropTypes.string,
+        destinations: PropTypes.arrayOf(
+          PropTypes.shape({
+            city: PropTypes.string,
+            state: PropTypes.string,
+            days: PropTypes.number,
+          })
+        ),
+        expenses: PropTypes.object,
+        notes: PropTypes.string,
+      })
+    ).isRequired,
+    onEdit: PropTypes.func.isRequired,
+    onDelete: PropTypes.func.isRequired,
+  };
+
   return (
     <Accordion alwaysOpen>
       {trips.map((trip, index) => {
         // --- SAFETY: Normalize destinations & expenses ---
-        const destinationsArray = Array.isArray(trip.destinations) ? trip.destinations : [];
+        const destinationsArray = Array.isArray(trip.destinations)
+          ? trip.destinations
+          : [];
         const expensesObj =
           trip.expenses && typeof trip.expenses === "object"
             ? trip.expenses
@@ -101,7 +126,10 @@ export default function TripAccordion({ trips, onEdit, onDelete }) {
                               <strong>{key}</strong>
                             </Card.Title>
                             <Card.Text>
-                              ${Number.isFinite(Number(value)) ? Number(value).toFixed(2) : "0.00"}
+                              $
+                              {Number.isFinite(Number(value))
+                                ? Number(value).toFixed(2)
+                                : "0.00"}
                             </Card.Text>
                           </Card.Body>
                         </Card>

@@ -24,7 +24,9 @@ export default function Visited() {
   }, [loadVisited]);
 
   const toggle = (code) => {
-    setVisited((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+    setVisited((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
   };
 
   const onSave = async () => {
