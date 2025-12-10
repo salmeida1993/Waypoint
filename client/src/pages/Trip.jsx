@@ -174,7 +174,7 @@ export default function Trip() {
           <h3 className="text-left mt-3 mb-3">Track where you've been across the U.S.</h3>
         </div>
         <div className="col">
-          <h3 className="text-center mt-3 mb-3">View your overall travel stats.</h3>
+          <h3 className="text-center mt-3 mb-3">View your overall travel stats</h3>
         </div>
         <div className="col">
           <h3 className="text-end mt-3 mb-3">See what's left to explore</h3>

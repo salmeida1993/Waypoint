@@ -109,7 +109,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
       : 0;
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg">
+    <Modal show={show} onHide={onHide} centered size="lg" scrollable >
       <Modal.Header closeButton>
         <Modal.Title>
           {initialData ? "Edit Trip" : "Add a New Trip"}
@@ -121,6 +121,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
           <Form.Group className="mb-3 trip-modal">
             <Form.Label>Title</Form.Label>
             <Form.Control
+              type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
@@ -170,6 +171,8 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                   <Col md={4}>
                     <FloatingLabel label="City" className="mb-1">
                       <Form.Control
+                        type="text"
+                        name="city"
                         placeholder="Chicago"
                         value={destination.city}
                         onChange={(e) =>
@@ -181,6 +184,8 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                   <Col md={3}>
                     <FloatingLabel label="State" className="mb-1">
                       <Form.Control
+                        type="text"
+                        name="state"
                         placeholder="IL"
                         value={destination.state}
                         onChange={(e) => {
@@ -204,6 +209,7 @@ export default function TripFormModal({ show, onHide, onSave, initialData }) {
                     <FloatingLabel label="Days" className="mb-1">
                       <Form.Control
                         type="number"
+                        name="days"
                         placeholder="3"
                         min={0}
                         max={tripDuration ?? undefined}
